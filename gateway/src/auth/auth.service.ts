@@ -18,6 +18,8 @@ export class AuthService {
       name: string;
       email: string;
       role: string;
+      createdAt?: string;
+      updatedAt?: string;
     };
   }> {
     const user = await this.userService.findByEmailWithPassword(dto.email);
@@ -43,6 +45,8 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : undefined,
+        updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : undefined,
       },
     };
   }

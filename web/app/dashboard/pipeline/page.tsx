@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Orbit, Upload, Layers, Sparkles, CheckCircle2, XCircle, AlertTriangle, FileCode, Compass, ArrowRight, Database, Cpu, RefreshCw, Eye } from 'lucide-react';
+import { Orbit, Upload, Layers, Sparkles, CheckCircle2, XCircle, AlertTriangle, FileCode, Compass, Database, Cpu, RefreshCw } from 'lucide-react';
 import { useGetSamplesQuery, useRegisterSampleMutation, useRegisterPairMutation, PipelineRunResponse } from '@/lib/services/pipelineApi';
 
 export default function PipelinePage() {
-  const { data: samples, isLoading: isSamplesLoading } = useGetSamplesQuery();
+  const { data: samples } = useGetSamplesQuery();
   const [registerSample, { isLoading: isSampleSubmitting }] = useRegisterSampleMutation();
   const [registerPair, { isLoading: isPairSubmitting }] = useRegisterPairMutation();
 
@@ -24,8 +24,9 @@ export default function PipelinePage() {
     try {
       const result = await registerSample({ sampleId }).unwrap();
       setActiveRun(result);
-    } catch (err: any) {
-      setActiveError(err?.data?.message || err?.message || 'Failed to trigger sample pipeline');
+    } catch (err: unknown) {
+      const errorObj = err as { data?: { message?: string }; message?: string };
+      setActiveError(errorObj?.data?.message || errorObj?.message || 'Failed to trigger sample pipeline');
     }
   };
 
@@ -48,8 +49,9 @@ export default function PipelinePage() {
     try {
       const result = await registerPair(formData).unwrap();
       setActiveRun(result);
-    } catch (err: any) {
-      setActiveError(err?.data?.message || err?.message || 'Failed to upload and start registration');
+    } catch (err: unknown) {
+      const errorObj = err as { data?: { message?: string }; message?: string };
+      setActiveError(errorObj?.data?.message || errorObj?.message || 'Failed to upload and start registration');
     }
   };
 
@@ -122,7 +124,7 @@ export default function PipelinePage() {
                 <span className="text-xs font-bold text-cyan-300 font-mono">Image A (Source / Moving)</span>
                 <select
                   value={instA}
-                  onChange={(e) => setInstA(e.target.value as any)}
+                  onChange={(e) => setInstA(e.target.value as 'OHRC' | 'TMC' | 'IIRS')}
                   className="bg-slate-950 border border-slate-700 text-[11px] font-mono rounded px-2 py-1 text-slate-300 focus:outline-none focus:border-cyan-500"
                 >
                   <option value="OHRC">OHRC (0.25m High-Res)</option>
@@ -165,7 +167,7 @@ export default function PipelinePage() {
                 <span className="text-xs font-bold text-purple-300 font-mono">Image B (Reference / Fixed)</span>
                 <select
                   value={instB}
-                  onChange={(e) => setInstB(e.target.value as any)}
+                  onChange={(e) => setInstB(e.target.value as 'OHRC' | 'TMC' | 'IIRS')}
                   className="bg-slate-950 border border-slate-700 text-[11px] font-mono rounded px-2 py-1 text-slate-300 focus:outline-none focus:border-purple-500"
                 >
                   <option value="TMC">TMC-2 (5.0m Optical)</option>

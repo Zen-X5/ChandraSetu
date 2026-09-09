@@ -10,8 +10,8 @@ export interface SampleDataset {
 export interface PipelineRunResponse {
   _id: string;
   runId: string;
-  sourceImageId: any;
-  referenceImageId?: any;
+  sourceImageId: string | Record<string, unknown>;
+  referenceImageId?: string | Record<string, unknown>;
   currentStage: 'INGESTION' | 'GEOMETRY' | 'MATCHING' | 'VALIDATION' | 'COMPLETED' | 'FAILED';
   status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
   geometryResult?: {
@@ -41,10 +41,10 @@ export interface PipelineRunResponse {
     };
     overlap_ratio: number;
     coarse_affine_matrix?: number[][];
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   };
-  matchingResult?: Record<string, any>;
-  validationResult?: Record<string, any>;
+  matchingResult?: Record<string, unknown>;
+  validationResult?: Record<string, unknown>;
   errorMessage?: string;
   createdAt: string;
   updatedAt: string;

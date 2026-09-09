@@ -12,14 +12,14 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
-export interface ValidateSessionResponse {
-  session: {
+export type ValidateSessionResponse = UserProfile | {
+  session?: {
     user_id: string;
     access_token: string;
     access_token_expires_at: string;
   };
   user: UserProfile;
-}
+};
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({

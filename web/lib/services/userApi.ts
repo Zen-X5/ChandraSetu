@@ -34,6 +34,28 @@ export const userApi = api.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+    resetPassword: builder.mutation<
+      { success: boolean; message: string },
+      { userId: string; currentPassword?: string; newPassword: string }
+    >({
+      query: ({ userId, ...body }) => ({
+        url: `/user/${userId}/password`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    updateProfile: builder.mutation<
+      UserProfile,
+      { userId: string; name: string }
+    >({
+      query: ({ userId, ...body }) => ({
+        url: `/user/${userId}/profile`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
   overrideExisting: false,
 });
@@ -43,4 +65,6 @@ export const {
   useGetUserByIdQuery,
   useCreateUserMutation,
   useDeleteUserMutation,
+  useResetPasswordMutation,
+  useUpdateProfileMutation,
 } = userApi;

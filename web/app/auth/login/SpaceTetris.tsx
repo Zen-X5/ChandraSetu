@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Play, Pause, RotateCw, ArrowLeft, ArrowRight, ArrowDown, Trophy, Flame } from 'lucide-react';
+import { Play, Pause, RotateCw, ArrowLeft, ArrowRight, ArrowDown, Trophy } from 'lucide-react';
 
 const SHAPES = {
   I: [

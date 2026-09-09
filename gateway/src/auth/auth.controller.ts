@@ -18,7 +18,13 @@ export class AuthController {
       throw new UnauthorizedException('Missing or malformed Authorization header');
     }
     const token = authHeader.split(' ')[1];
-    return this.authService.validateToken(token);
+    const user = await this.authService.validateToken(token);
+    const userObj = user && 'toObject' in user && typeof user.toObject === 'function' ? user.toObject() : user;
+    if (userObj) {
+      const { password, ...safeUser } = userObj as Record<string, any>;
+      return safeUser;
+    }
+    return userObj;
   }
 
   @Post('logout')

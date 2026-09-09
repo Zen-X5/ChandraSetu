@@ -1,18 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-  getSessionCookie,
-  removeSessionCookie,
-  setSessionCookie,
-} from '@/lib/utils/session.utils';
+import { getSessionCookie, removeSessionCookie, setSessionCookie } from '@/lib/utils/session.utils';
 
 export type UserRole = 'scientist' | 'admin';
 
 export interface UserProfile {
+  _id?: string;
   userId: string;
   name: string;
   email: string;
   role: UserRole;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthState {

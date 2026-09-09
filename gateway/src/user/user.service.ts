@@ -160,4 +160,61 @@ export class UserService implements OnApplicationBootstrap {
     await user.save();
     return { success: true, message: `User ${user.email} deactivated successfully` };
   }
+
+  async updatePassword(
+    userId: string,
+    dto: { currentPassword?: string; newPassword: string },
+  ): Promise<{ success: boolean; message: string }> {
+    let user: UserDocument | null = null;
+    if (isValidObjectId(userId)) {
+      user = await this.userModel
+        .findOne({ _id: userId, deletedAt: null })
+        .select('+password')
+        .exec();
+    }
+    if (!user) {
+      user = await this.userModel
+        .findOne({ userId, deletedAt: null })
+        .select('+password')
+        .exec();
+    }
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
+    if (dto.currentPassword) {
+      const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+      if (!isMatch) {
+        throw new BadRequestException('Current password does not match.');
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Security access key / password updated successfully.',
+    };
+  }
+
+  async updateProfile(
+    userId: string,
+    dto: { name: string },
+  ): Promise<Omit<User, 'password'>> {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
+    if (dto.name) {
+      user.name = dto.name.trim();
+    }
+    await user.save();
+
+    const userObj = user.toObject ? user.toObject() : user;
+    const { password, ...safeUser } = userObj;
+    return safeUser as Omit<User, 'password'>;
+  }
 }

@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/lib/services/authApi';
 import { useAppDispatch } from '@/lib/hooks/hooks';
 import { setCredentials } from '@/lib/features/auth/authSlice';
 import SpaceTetris from './SpaceTetris';
-import { Rocket, Lock, Mail, Eye, EyeOff, Radio, Sparkles, ShieldCheck, Satellite, Info, Play, Pause, Orbit, Cpu, Globe, Activity, ChevronRight, AlertCircle, HelpCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, Radio, ShieldCheck, Orbit, ChevronRight, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,20 +20,9 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isWarpBoosting, setIsWarpBoosting] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [currentTime, setCurrentTime] = useState<string>('');
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(now.toUTCString().replace('GMT', 'UTC'));
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -166,20 +156,16 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsWarpBoosting(false);
+      const errorObj = err as { data?: { message?: string }; error?: string; message?: string };
       const msg =
-        err?.data?.message ||
-        err?.error ||
+        errorObj?.data?.message ||
+        errorObj?.error ||
+        errorObj?.message ||
         'Authentication failed. Verify credentials and clearance level.';
       setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
-  };
-
-  const fillDemoAdmin = () => {
-    setEmail('sahidwork123@gmail.com');
-    setPassword('Sahid123sahim@');
-    setErrorMessage(null);
   };
 
   return (
@@ -188,9 +174,12 @@ export default function LoginPage() {
 
         <div className="flex items-center gap-3 z-10 shrink-0 pr-4 bg-black py-1">
           <div className="relative flex items-center justify-center w-10 h-10 bg-black shrink-0">
-            <img
+            <Image
               src="/logo.png"
               alt="ChandraSetu Logo"
+              width={40}
+              height={40}
+              priority
               className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(6,182,212,0.6)]"
             />
           </div>

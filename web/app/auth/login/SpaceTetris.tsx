@@ -60,6 +60,30 @@ const PIECE_TYPES: ShapeKey[] = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 const createEmptyBoard = () =>
   Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
+const checkCollision = (
+  px: number,
+  py: number,
+  shape: number[][],
+  grid: (string | 0)[][],
+) => {
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c]) {
+        const newX = px + c;
+        const newY = py + r;
+
+        if (newX < 0 || newX >= COLS || newY >= ROWS) {
+          return true;
+        }
+        if (newY >= 0 && grid[newY][newX]) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
 export default function SpaceTetris() {
   const [board, setBoard] = useState<(string | 0)[][]>(createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState<{
@@ -70,18 +94,19 @@ export default function SpaceTetris() {
   } | null>(null);
   const [nextPiece, setNextPiece] = useState<ShapeKey>('T');
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chandrasetu_tetris_hi');
+      return saved ? parseInt(saved, 10) || 0 : 0;
+    }
+    return 0;
+  });
   const [lines, setLines] = useState(0);
   const [level, setLevel] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('chandrasetu_tetris_hi');
-    if (saved) setHighScore(parseInt(saved, 10) || 0);
-  }, []);
 
   const getRandomPieceType = (): ShapeKey => {
     return PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)];
@@ -109,30 +134,6 @@ export default function SpaceTetris() {
     setCurrentPiece(piece);
     return piece;
   }, [nextPiece, board]);
-
-  const checkCollision = (
-    px: number,
-    py: number,
-    shape: number[][],
-    grid: (string | 0)[][],
-  ) => {
-    for (let r = 0; r < shape.length; r++) {
-      for (let c = 0; c < shape[r].length; c++) {
-        if (shape[r][c]) {
-          const newX = px + c;
-          const newY = py + r;
-
-          if (newX < 0 || newX >= COLS || newY >= ROWS) {
-            return true;
-          }
-          if (newY >= 0 && grid[newY][newX]) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  };
 
   const mergePieceToBoard = useCallback(() => {
     if (!currentPiece) return;
@@ -188,21 +189,21 @@ export default function SpaceTetris() {
     }
   }, [currentPiece, gameOver, isPlaying, board, mergePieceToBoard]);
 
-  const moveLeft = () => {
+  const moveLeft = useCallback(() => {
     if (!currentPiece || gameOver || !isPlaying) return;
     if (!checkCollision(currentPiece.x - 1, currentPiece.y, currentPiece.shape, board)) {
       setCurrentPiece((prev) => (prev ? { ...prev, x: prev.x - 1 } : null));
     }
-  };
+  }, [currentPiece, gameOver, isPlaying, board]);
 
-  const moveRight = () => {
+  const moveRight = useCallback(() => {
     if (!currentPiece || gameOver || !isPlaying) return;
     if (!checkCollision(currentPiece.x + 1, currentPiece.y, currentPiece.shape, board)) {
       setCurrentPiece((prev) => (prev ? { ...prev, x: prev.x + 1 } : null));
     }
-  };
+  }, [currentPiece, gameOver, isPlaying, board]);
 
-  const rotate = () => {
+  const rotate = useCallback(() => {
     if (!currentPiece || gameOver || !isPlaying) return;
 
     const matrix = currentPiece.shape;
@@ -218,9 +219,9 @@ export default function SpaceTetris() {
     }
 
     setCurrentPiece((prev) => (prev ? { ...prev, shape: rotated, x: prev.x + offset } : null));
-  };
+  }, [currentPiece, gameOver, isPlaying, board]);
 
-  const hardDrop = () => {
+  const hardDrop = useCallback(() => {
     if (!currentPiece || gameOver || !isPlaying) return;
     let targetY = currentPiece.y;
     while (!checkCollision(currentPiece.x, targetY + 1, currentPiece.shape, board)) {
@@ -228,9 +229,9 @@ export default function SpaceTetris() {
     }
     setCurrentPiece((prev) => (prev ? { ...prev, y: targetY } : null));
     setTimeout(mergePieceToBoard, 30);
-  };
+  }, [currentPiece, gameOver, isPlaying, board, mergePieceToBoard]);
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setBoard(createEmptyBoard());
     setScore(0);
     setLines(0);
@@ -246,15 +247,15 @@ export default function SpaceTetris() {
       x: Math.floor((COLS - SHAPES[firstType][0].length) / 2),
       y: 0,
     });
-  };
+  }, []);
 
-  const togglePause = () => {
+  const togglePause = useCallback(() => {
     if (gameOver) {
       startGame();
       return;
     }
     setIsPlaying((prev) => !prev);
-  };
+  }, [gameOver, startGame]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -298,7 +299,7 @@ export default function SpaceTetris() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, gameOver, moveDown, currentPiece]);
+  }, [isPlaying, gameOver, moveDown, moveLeft, moveRight, rotate, hardDrop, togglePause]);
 
   useEffect(() => {
     if (isPlaying && !gameOver) {
@@ -328,7 +329,7 @@ export default function SpaceTetris() {
       <div className="p-3 border-b border-cyan-500/20 bg-slate-950 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-bold tracking-wider text-cyan-200 uppercase">
-            // LUNAR TETRIS
+            {`// LUNAR TETRIS`}
           </h2>
         </div>
 
@@ -358,7 +359,9 @@ export default function SpaceTetris() {
         </div>
         <div className="p-1 rounded bg-slate-900 border border-slate-800 text-center flex flex-col justify-center">
           <div className="text-[7px] text-slate-500 font-bold uppercase">HI-SCORE</div>
-          <div className="font-bold text-[11px] text-amber-300 truncate">{highScore}</div>
+          <div className="font-bold text-[11px] text-amber-300 truncate" suppressHydrationWarning>
+            {highScore}
+          </div>
         </div>
         <div className="p-1 rounded bg-slate-900 border border-slate-800 text-center flex flex-col justify-center">
           <div className="text-[7px] text-slate-500 font-bold uppercase">LINES/LVL</div>
@@ -384,10 +387,8 @@ export default function SpaceTetris() {
         </div>
       </div>
 
-      {/* Main Game Stage: Full Width Edge-to-Edge Terminal Board */}
       <div className="flex-1 w-full flex flex-col justify-between overflow-hidden relative bg-black">
 
-        {/* Full-Width Tetris Grid Container */}
         <div className="relative w-full flex-1 flex items-center justify-center bg-black border-y border-cyan-500/20">
           <div
             className="grid gap-[1px] bg-slate-950/90 w-full h-full p-0.5"

@@ -23,7 +23,7 @@ const NAV_ITEMS: SidebarItem[] = [
   { name: 'Staff', href: '/dashboard/staff', icon: Users, badge: 'All' },
   { name: 'Scientists', href: '/dashboard/scientists', icon: FlaskConical },
   { name: 'Image Pairs', href: '/dashboard/observations', icon: Database, disabled: true },
-  { name: 'Pipeline', href: '/dashboard/pipeline', icon: Layers, disabled: true },
+  { name: 'Pipeline', href: '/dashboard/pipeline', icon: Layers },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

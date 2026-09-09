@@ -1,0 +1,43 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: chandrasetu-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=chandrasetu
+
+  minio:
+    image: minio/minio:latest
+    container_name: chandrasetu-minio
+    restart: always
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # MinIO Web Console UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: chandrasetu-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 2;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/chandrasetu-images --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/chandrasetu-images;
+      exit 0;
+      "
+
+volumes:
+  mongo_data:
+  minio_data:

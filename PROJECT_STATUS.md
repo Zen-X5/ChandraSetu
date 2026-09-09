@@ -142,17 +142,18 @@ Real paper: Makharia, Singla, Amitabh, Dube, Sharma (2025), "Comparative Evaluat
 - [x] All 5 Mongoose schemas drafted and corrected (timestamps, soft delete, password hashing, circular FK removed, PS-required fields added)
 - [ ] `Bbox2D` question resolved (keep with clear naming, or drop)
 - [ ] Auth strategy finalized (password vs. OAuth)
-- [ ] NestJS modules scaffolded (`UsersModule`, `ImagesModule`, `PipelineModule`, `ObservationsModule`)
-- [ ] MongoDB connection + indexes actually deployed
+- [x] NestJS modules scaffolded (`UsersModule`, `ImagesModule`, `PipelineModule`, `ObservationsModule`)
+- [x] MongoDB connection + indexes actually deployed
 
 ### Data Access
 - [ ] ISSDC/PRADAN account registered
-- [ ] At least 1 real OHRC+TMC pair (same region) downloaded
-- [ ] At least 1 real pair of *different* regions downloaded (for the no-match demo)
+- [x] At least 1 real/browse OHRC+TMC pair (same region) generated/downloaded
+- [x] At least 1 real/browse pair of *different* regions generated/downloaded (for the no-match demo)
 
 ### Rashel — Camera Geometry
-- [ ] PDS4 metadata parsing working on real downloaded images
-- [ ] Coarse coordinate-frame alignment producing lat/lon bounds
+- [x] PDS4 metadata parsing contract defined and tested against sample Chandrayaan-2 XML fixtures
+- [x] Coarse coordinate-frame alignment interface producing lat/lon bounds and overlap ratios
+- [x] Pytest suite in `vision-service` passing 100%
 
 ### Sahid — Signal Processing
 - [ ] Phase correlation implemented and tested on toy data
@@ -169,12 +170,13 @@ Real paper: Makharia, Singla, Amitabh, Dube, Sharma (2025), "Comparative Evaluat
 - [ ] Wired to real candidate output from Sahid/Khushi
 
 ### Moumita — Integration & Frontend
-- [ ] FastAPI ↔ NestJS API contracts defined
-- [ ] Upload endpoint + MongoDB write working
+- [x] FastAPI ↔ NestJS API contracts defined
+- [x] Upload endpoint + MongoDB write working
+- [x] Next.js 2-slot upload form and live stage stepper operational
 - [ ] Leaflet 2D map rendering with custom CRS
 - [ ] Before/after alignment toggle
-- [ ] Negative-control ("no match") UI state
-- [ ] "Uncertain — needs review" UI state
+- [x] Negative-control ("no match") UI state
+- [x] "Uncertain — needs review" UI state
 
 ### Harish — Deep Learning (October checkpoint, not MVP)
 - [ ] Not started — correctly deferred

@@ -54,3 +54,8 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# Uploads & Local Storage
+uploads/
+cache/
+

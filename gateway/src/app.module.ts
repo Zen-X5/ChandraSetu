@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SessionModule } from './session/session.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtModule } from '@nestjs/jwt';
     ObservationsModule,
     SessionModule,
     AuthModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks/hooks';
 import { useGetMeQuery } from '@/lib/services/authApi';
 import { useResetPasswordMutation, useUpdateProfileMutation } from '@/lib/services/userApi';
 import { UserProfile, setUser } from '@/lib/features/auth/authSlice';
-import { KeyRound, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff, Sparkles, Edit3, X, Lock, UserCheck, Calendar, Hash, Mail, Clock, ShieldAlert, Orbit } from 'lucide-react';
+import { KeyRound, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff, Edit3, X, Lock, UserCheck, Orbit } from 'lucide-react';
 
 export default function SettingsPage() {
   const dispatch = useAppDispatch();

@@ -13,6 +13,9 @@ export enum FileFormat {
     IMG = '.img',
     CUB = '.cub',
     TIF = '.tif',
+    PNG = '.png',
+    JPG = '.jpg',
+    JPEG = '.jpeg',
 }
 
 export enum MetadataStatus {

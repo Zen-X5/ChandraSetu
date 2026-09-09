@@ -137,21 +137,38 @@ flowchart TD
 ChandraSetu/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                 # Automated CI build & test pipeline
-├── gateway/                       # API Gateway & Backend Services
-│   ├── src/                       # NestJS API controllers, services, modules
-│   ├── test/                      # Unit and integration test suites
+│       └── ci.yml                 # Automated CI build & lint/test pipeline
+├── docker-compose.yml             # Local MongoDB & MinIO S3 infrastructure
+├── gateway/                       # NestJS API Gateway & Pipeline Orchestrator
+│   ├── src/
+│   │   ├── auth/                  # JWT auth, guards & role RBAC
+│   │   ├── images/                # PDS4 upload handling & MinIO S3 integration
+│   │   ├── pipeline/              # Microservice pipeline orchestrator & runs
+│   │   └── users/                 # User management & scientist profiles
+│   ├── test/                      # Unit & e2e test suites
 │   ├── package.json
 │   └── tsconfig.json
-├── web/                           # Interactive Lunar Dashboard & GIS Client
-│   ├── src/
-│   │   ├── app/                   # Next.js App Router (Dashboard, Map, Viewer)
-│   │   └── components/            # Upload widget, pipeline telemetry, Lunar Canvas
-│   ├── public/                    # Static assets & lunar basemap tiles
+├── vision-service/                # Python / FastAPI Computer Vision Microservice
+│   ├── app/
+│   │   ├── core/                  # Geodetic transforms & cartographic alignment
+│   │   ├── routers/               # Geometry & optical matching endpoints
+│   │   └── services/              # PDS4 XML parser, CLAHE, FFT phase correlation
+│   ├── requirements.txt
+│   └── tests/
+├── inference-service/             # Python / PyTorch Deep Learning Microservice
+│   ├── app/                       # SuperPoint + SuperGlue neural matchers
+│   ├── requirements.txt
+│   └── tests/
+├── web/                           # Next.js 16 Lunar Dashboard & GIS Client
+│   ├── app/                       # App Router (Dashboard, Pipeline, Settings, Staff)
+│   ├── lib/                       # Redux Toolkit store, RTK Query API slices, hooks
+│   ├── public/                    # Static assets & lunar iconography
+│   ├── proxy.ts                   # Next.js reverse proxy middleware for Gateway
 │   ├── package.json
-│   └── tailwind.config.ts
+│   └── tsconfig.json
+├── uploads/                       # Temporary workspace buffer for lunar image pairs
 ├── .gitignore                     # Root-level ignore rules
-└── README.md                      # Project documentation
+└── README.md                      # Comprehensive project documentation
 ```
 
 ---
@@ -160,9 +177,8 @@ ChandraSetu/
 
 ### Prerequisites
 - **Node.js**: v20.x or higher
-- **npm**: v10.x or higher
-- **Python**: 3.10+ (for backend geospatial/vision dependencies)
-- **MongoDB**: Local or Atlas instance
+- **Python**: 3.10+ (for `vision-service` and `inference-service`)
+- **Docker & Docker Compose**: For MongoDB & MinIO services
 
 ### 1. Clone the Repository
 ```bash
@@ -170,21 +186,37 @@ git clone https://github.com/Zen-X5/ChandraSetu.git
 cd ChandraSetu
 ```
 
-### 2. Setup & Run the Gateway
+### 2. Start Supporting Infrastructure (MongoDB & MinIO)
 ```bash
-cd gateway
+docker compose up -d
+```
+* MongoDB: `mongodb://localhost:27017/chandrasetu`
+* MinIO S3 API: `http://localhost:9000` | Console UI: `http://localhost:9001` (`minioadmin` / `minioadmin`)
+
+### 3. Setup & Run the Vision Service (FastAPI)
+```bash
+cd vision-service
+python -m venv venv
+# On Windows: .\venv\Scripts\activate | On Linux/macOS: source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000 --reload
+```
+
+### 4. Setup & Run the API Gateway (NestJS)
+```bash
+cd ../gateway
 npm install
 npm run start:dev
 ```
-*The API gateway starts on `http://localhost:3000` (or configured port).*
+*The API gateway runs on `http://localhost:5000` (or configured `PORT`).*
 
-### 3. Setup & Run the Web Application
+### 5. Setup & Run the Web Application (Next.js)
 ```bash
 cd ../web
 npm install
 npm run dev
 ```
-*Open [http://localhost:3000](http://localhost:3000) (or Next.js port) in your browser to view the dashboard.*
+*Open [http://localhost:3000](http://localhost:3000) in your browser to access the interactive dashboard.*
 
 ---
 

@@ -39,7 +39,17 @@ export class ImagesService {
 
     const existing = await this.rawImageModel.findOne({ contentHash });
     if (existing) {
-      return existing;
+      if (existing.storageRef && fs.existsSync(existing.storageRef)) {
+        return existing;
+      }
+      const { localPath } = await this.storageService.uploadFile(
+        fileBuffer,
+        originalFilename,
+        subfolder,
+      );
+      existing.storageRef = localPath;
+      existing.uploadStatus = UploadStatus.UPLOADED;
+      return await existing.save();
     }
 
     const { storageRef, localPath } = await this.storageService.uploadFile(

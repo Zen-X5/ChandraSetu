@@ -102,22 +102,20 @@ export default function ObservationsPage() {
                   setShowDevModal(true);
                 }
               }}
-              className={`px-3 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
-                viewMode === '3D_GLOBE'
+              className={`px-3 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${viewMode === '3D_GLOBE'
                   ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                   : 'text-[#8B92A0] hover:text-[#E8EAED]'
-              }`}
+                }`}
             >
               <Orbit className="w-3.5 h-3.5 text-[#5B8DEF]" />
               <span>3D Moon</span>
             </button>
             <button
               onClick={() => setViewMode(viewMode === '2D_INSPECTION' ? 'HIDDEN' : '2D_INSPECTION')}
-              className={`px-3 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
-                viewMode === '2D_INSPECTION'
+              className={`px-3 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${viewMode === '2D_INSPECTION'
                   ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                   : 'text-[#8B92A0] hover:text-[#E8EAED]'
-              }`}
+                }`}
             >
               <Maximize2 className="w-3.5 h-3.5 text-[#5B8DEF]" />
               <span>2D Crater Zoom</span>
@@ -172,44 +170,40 @@ export default function ObservationsPage() {
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              statusFilter === 'ALL'
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${statusFilter === 'ALL'
                 ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                 : 'text-[#8B92A0] hover:text-[#E8EAED]'
-            }`}
+              }`}
           >
             All ({runs?.length || 0})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('MATCHED')}
-            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              statusFilter === 'MATCHED'
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${statusFilter === 'MATCHED'
                 ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                 : 'text-[#8B92A0] hover:text-[#E8EAED]'
-            }`}
+              }`}
           >
             Matched ({matchedCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('UNCERTAIN')}
-            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              statusFilter === 'UNCERTAIN'
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${statusFilter === 'UNCERTAIN'
                 ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                 : 'text-[#8B92A0] hover:text-[#E8EAED]'
-            }`}
+              }`}
           >
             Uncertain ({uncertainCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('UNMATCHED')}
-            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              statusFilter === 'UNMATCHED'
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${statusFilter === 'UNMATCHED'
                 ? 'bg-[#161A22] text-[#E8EAED] font-semibold'
                 : 'text-[#8B92A0] hover:text-[#E8EAED]'
-            }`}
+              }`}
           >
             Unmatched ({unmatchedCount})
           </button>
@@ -245,11 +239,10 @@ export default function ObservationsPage() {
                   <div
                     key={run.runId}
                     onClick={() => setSelectedObservation(run)}
-                    className={`relative p-4 transition-colors cursor-pointer ${
-                      isSelected
+                    className={`relative p-4 transition-colors cursor-pointer ${isSelected
                         ? 'bg-[#161A22]'
                         : 'hover:bg-[#161A22]/40'
-                    }`}
+                      }`}
                   >
                     {isSelected && (
                       <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#5B8DEF]" />
@@ -266,13 +259,12 @@ export default function ObservationsPage() {
                       </div>
 
                       <span
-                        className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-[#161A22] ${
-                          valStatus === 'MATCHED'
+                        className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-[#161A22] ${valStatus === 'MATCHED'
                             ? 'text-[#3FB68B] border-[#3FB68B]/40'
                             : valStatus === 'UNCERTAIN'
-                            ? 'text-[#D9A441] border-[#D9A441]/40'
-                            : 'text-[#D9534F] border-[#D9534F]/40'
-                        }`}
+                              ? 'text-[#D9A441] border-[#D9A441]/40'
+                              : 'text-[#D9534F] border-[#D9534F]/40'
+                          }`}
                       >
                         {valStatus.toLowerCase()}
                       </span>
@@ -328,13 +320,12 @@ export default function ObservationsPage() {
                 </div>
 
                 <span
-                  className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-[#161A22] ${
-                    selectedObservation.validationResult?.status === 'MATCHED'
+                  className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-[#161A22] ${selectedObservation.validationResult?.status === 'MATCHED'
                       ? 'text-[#3FB68B] border-[#3FB68B]/40'
                       : selectedObservation.validationResult?.status === 'UNCERTAIN'
-                      ? 'text-[#D9A441] border-[#D9A441]/40'
-                      : 'text-[#D9534F] border-[#D9534F]/40'
-                  }`}
+                        ? 'text-[#D9A441] border-[#D9A441]/40'
+                        : 'text-[#D9534F] border-[#D9534F]/40'
+                    }`}
                 >
                   {(selectedObservation.validationResult?.status || 'MATCHED').toLowerCase()}
                 </span>

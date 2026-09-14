@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Construction, Orbit, Layers, ArrowRight, X } from 'lucide-react';
+import { Construction, Orbit, Layers, X } from 'lucide-react';
 
 interface EngineDevModalProps {
   isOpen: boolean;

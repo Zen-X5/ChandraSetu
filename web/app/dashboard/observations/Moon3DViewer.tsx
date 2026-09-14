@@ -177,7 +177,10 @@ export default function Moon3DViewer({ observations, selectedRun, onSelectRun, o
   }, []);
 
   useEffect(() => {
-    if (selectedRun) focusObservation(selectedRun);
+    if (selectedRun) {
+      const timer = setTimeout(() => focusObservation(selectedRun), 0);
+      return () => clearTimeout(timer);
+    }
   }, [selectedRun, focusObservation]);
 
   /* ─── Main Three.js setup ─── */

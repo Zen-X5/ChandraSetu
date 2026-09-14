@@ -10,10 +10,6 @@ import {
   XCircle,
   AlertTriangle,
   RefreshCw,
-  Compass,
-  Activity,
-  ShieldCheck,
-  Globe,
 } from 'lucide-react';
 import {
   useGetSamplesQuery,

@@ -3,7 +3,7 @@ name: chandrasetu-production
 services:
   # 1. Object Storage (MinIO S3)
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: chandrasetu-minio-prod
     restart: always
     ports:
@@ -18,7 +18,7 @@ services:
 
   # 2. MinIO S3 Auto-Bucket Initialization
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     container_name: chandrasetu-minio-init-prod
     depends_on:
       - minio

@@ -78,10 +78,10 @@ jobs:
     name: 🚀 Auto-Deploy to Production Server
     needs: build-and-publish
     runs-on: ubuntu-latest
-    if: secrets.SERVER_HOST != ''
 
     steps:
       - name: 🚀 SSH Remote Deploy
+        if: ${{ secrets.SERVER_HOST != '' }}
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}

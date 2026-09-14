@@ -66,9 +66,6 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    env_file:
-      - path: ./gateway/.env
-        required: false
     environment:
       - PORT=8000
       - MONGO_URL=${MONGO_URL:-mongodb://sahidwork123_db_user:Xd6ZiROQrdZb72ZK@ac-fdstf9p-shard-00-00.m1pqviy.mongodb.net:27017,ac-fdstf9p-shard-00-01.m1pqviy.mongodb.net:27017,ac-fdstf9p-shard-00-02.m1pqviy.mongodb.net:27017/ChandraSetu?ssl=true&replicaSet=atlas-y0q6fv-shard-0&authSource=admin&appName=Cluster0}

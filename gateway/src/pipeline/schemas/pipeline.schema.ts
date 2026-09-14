@@ -56,6 +56,12 @@ export class PipelineRun {
     @Prop()
     errorMessage?: string;
 
+    @Prop()
+    imageAUrl?: string;
+
+    @Prop()
+    imageBUrl?: string;
+
     @Prop({ type: Types.ObjectId, ref: 'User' })
     initiatedBy?: Types.ObjectId;
 }

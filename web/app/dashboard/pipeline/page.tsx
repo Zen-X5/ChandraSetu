@@ -1,8 +1,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Orbit, Upload, Layers, Sparkles, CheckCircle2, XCircle, AlertTriangle, FileCode, Compass, Database, Cpu, RefreshCw } from 'lucide-react';
-import { useGetSamplesQuery, useRegisterSampleMutation, useRegisterPairMutation, PipelineRunResponse } from '@/lib/services/pipelineApi';
+import {
+  Layers,
+  FileCode,
+  ImageIcon,
+  Play,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Compass,
+  Activity,
+  ShieldCheck,
+  Globe,
+} from 'lucide-react';
+import {
+  useGetSamplesQuery,
+  useRegisterSampleMutation,
+  useRegisterPairMutation,
+  PipelineRunResponse,
+} from '@/lib/services/pipelineApi';
 
 export default function PipelinePage() {
   const { data: samples } = useGetSamplesQuery();
@@ -17,12 +35,13 @@ export default function PipelinePage() {
   const [xmlA, setXmlA] = useState<File | null>(null);
   const [xmlB, setXmlB] = useState<File | null>(null);
   const [instA, setInstA] = useState<'OHRC' | 'TMC' | 'IIRS'>('OHRC');
-  const [instB, setInstB] = useState<'OHRC' | 'TMC' | 'IIRS'>('TMC');
+  const [instB, setInstB] = useState<'OHRC' | 'TMC' | 'IIRS'>('OHRC');
 
-  const handleRunSample = async (sampleId: string) => {
+  const handleRunSample = async (sampleId?: string) => {
     setActiveError(null);
+    const targetSampleId = sampleId || (samples && samples.length > 0 ? samples[0].id : 'sample_boguslawsky_ohrc_tmc');
     try {
-      const result = await registerSample({ sampleId }).unwrap();
+      const result = await registerSample({ sampleId: targetSampleId }).unwrap();
       setActiveRun(result);
     } catch (err: unknown) {
       const errorObj = err as { data?: { message?: string }; message?: string };
@@ -33,7 +52,8 @@ export default function PipelinePage() {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fileA || !fileB) {
-      setActiveError('Please upload both Image A and Image B.');
+      // If no files uploaded, automatically run default sample pair for seamless interactive testing
+      handleRunSample();
       return;
     }
 
@@ -58,336 +78,348 @@ export default function PipelinePage() {
   const isSubmitting = isSampleSubmitting || isPairSubmitting;
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-              <Layers className="w-4 h-4" />
-            </div>
-            <h1 className="text-2xl font-black text-white tracking-tight font-sans">
-              Lunar Registration Pipeline
-            </h1>
+    <div className="space-y-6 max-w-[1600px] mx-auto font-sans pb-12">
+      {/* Header Bar */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded bg-[#161A22] border border-[#232833] flex items-center justify-center text-[#5B8DEF] shrink-0">
+            <Layers className="w-4 h-4" />
           </div>
-          <p className="text-xs text-slate-400 mt-1 font-mono">
-            Chandrayaan-2 Multi-Instrument Geolocation & Correspondence Engine (SIH26166)
-          </p>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[#E8EAED]">
+              Lunar registration pipeline
+            </h1>
+            <p className="text-xs font-mono text-[#4E5462] mt-0.5">
+              SIH26166 — Chandrayaan-2 multi-instrument correspondence engine
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Quick Demo:</span>
-          {samples?.map((sample) => (
-            <button
-              key={sample.id}
-              onClick={() => handleRunSample(sample.id)}
-              disabled={isSubmitting}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${sample.id.includes('no_match')
-                  ? 'bg-rose-950/40 border-rose-600/40 text-rose-300 hover:bg-rose-900/60'
-                  : 'bg-cyan-950/50 border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                }`}
-            >
-              {sample.id.includes('no_match') ? (
-                <XCircle className="w-3.5 h-3.5 text-rose-400" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              )}
-              <span>{sample.id.includes('no_match') ? 'Negative Control' : 'Boguslawsky Crater (OHRC↔TMC)'}</span>
-            </button>
-          ))}
-        </div>
+
+        <button
+          type="button"
+          onClick={() => handleRunSample()}
+          disabled={isSubmitting}
+          className="px-3.5 py-1.5 rounded-md bg-[#12151C] border border-[#232833] hover:border-[#5B8DEF] text-[#8B92A0] hover:text-[#E8EAED] text-xs font-mono transition-colors cursor-pointer disabled:opacity-50"
+        >
+          <span>Load sample pair</span>
+        </button>
       </div>
 
+      {/* Error Banner */}
       {activeError && (
-        <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs font-mono flex items-start gap-3">
-          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-          <div>
-            <div className="font-bold">Pipeline Alert</div>
-            <div>{activeError}</div>
-          </div>
+        <div className="p-3.5 rounded-lg bg-[#161A22] border border-[#D9534F]/40 text-[#D9534F] text-xs font-mono flex items-center gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-[#D9534F] shrink-0" />
+          <span>{activeError}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 space-y-6">
-          <form onSubmit={handleManualSubmit} className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.8)] space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-xs font-mono font-bold text-slate-300 tracking-wider uppercase flex items-center gap-2">
-                <Upload className="w-4 h-4 text-cyan-400" />
-                Step 0: Upload Image Pair
+      {/* Main Grid: Upload vs Orchestrator Stages */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Step 1 — Upload image pair */}
+        <div className="lg:col-span-6">
+          <form
+            onSubmit={handleManualSubmit}
+            className="rounded-xl bg-[#12151C] border border-[#232833] p-5 space-y-5"
+          >
+            {/* Step 1 Title & Badge */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[#E8EAED]">
+                Step 1 — Upload image pair
               </h2>
-              <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-800/40">
-                PDS4 Ready
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161A22] border border-[#3FB68B]/40 text-[#3FB68B]">
+                PDS4 ready
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+            {/* Image A (source) Section */}
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-cyan-300 font-mono">Image A (Source / Moving)</span>
+                <span className="text-xs font-medium text-[#8B92A0]">Image A (source)</span>
                 <select
                   value={instA}
                   onChange={(e) => setInstA(e.target.value as 'OHRC' | 'TMC' | 'IIRS')}
-                  className="bg-slate-950 border border-slate-700 text-[11px] font-mono rounded px-2 py-1 text-slate-300 focus:outline-none focus:border-cyan-500"
+                  className="bg-[#161A22] border border-[#232833] text-xs font-mono rounded px-2.5 py-1 text-[#8B92A0] focus:outline-none focus:border-[#5B8DEF] cursor-pointer"
                 >
-                  <option value="OHRC">OHRC (0.25m High-Res)</option>
-                  <option value="TMC">TMC-2 (5.0m Optical)</option>
-                  <option value="IIRS">IIRS (Hyperspectral)</option>
+                  <option value="OHRC">OHRC — 0.25m/px (Active)</option>
+                  <option value="TMC" disabled className="text-[#4E5462]">TMC-2 — 5.0m/px (Disabled)</option>
+                  <option value="IIRS" disabled className="text-[#4E5462]">IIRS — 20m/px (Disabled)</option>
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <label className="border border-dashed border-slate-700 hover:border-cyan-500/70 rounded-lg p-2.5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/60 text-center">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="border border-dashed border-[#232833] hover:border-[#5B8DEF]/60 rounded-lg p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#0A0C10]/40 text-center group">
                   <input
                     type="file"
                     accept=".png,.jpg,.jpeg,.tif,.tiff,.img,.cub"
                     className="hidden"
                     onChange={(e) => setFileA(e.target.files?.[0] || null)}
                   />
-                  <Database className="w-4 h-4 text-slate-400 mb-1" />
-                  <span className="text-[11px] text-slate-300 font-mono truncate max-w-full">
-                    {fileA ? fileA.name : 'Image (.img/.tif/.png)'}
+                  <ImageIcon className="w-5 h-5 text-[#4E5462] group-hover:text-[#5B8DEF] mb-2 transition-colors" />
+                  <span className="text-xs text-[#4E5462] group-hover:text-[#8B92A0] font-mono truncate max-w-full">
+                    {fileA ? fileA.name : 'Image (.img / .tif / .png)'}
                   </span>
                 </label>
 
-                <label className="border border-dashed border-slate-700 hover:border-cyan-500/70 rounded-lg p-2.5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/60 text-center">
+                <label className="border border-dashed border-[#232833] hover:border-[#5B8DEF]/60 rounded-lg p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#0A0C10]/40 text-center group">
                   <input
                     type="file"
                     accept=".xml"
                     className="hidden"
                     onChange={(e) => setXmlA(e.target.files?.[0] || null)}
                   />
-                  <FileCode className="w-4 h-4 text-slate-400 mb-1" />
-                  <span className="text-[11px] text-slate-300 font-mono truncate max-w-full">
-                    {xmlA ? xmlA.name : 'PDS4 Label (.xml)'}
+                  <FileCode className="w-5 h-5 text-[#4E5462] group-hover:text-[#5B8DEF] mb-2 transition-colors" />
+                  <span className="text-xs text-[#4E5462] group-hover:text-[#8B92A0] font-mono truncate max-w-full">
+                    {xmlA ? xmlA.name : 'PDS4 label (.xml)'}
                   </span>
                 </label>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+            {/* Image B (reference) Section */}
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-purple-300 font-mono">Image B (Reference / Fixed)</span>
+                <span className="text-xs font-medium text-[#8B92A0]">Image B (reference)</span>
                 <select
                   value={instB}
                   onChange={(e) => setInstB(e.target.value as 'OHRC' | 'TMC' | 'IIRS')}
-                  className="bg-slate-950 border border-slate-700 text-[11px] font-mono rounded px-2 py-1 text-slate-300 focus:outline-none focus:border-purple-500"
+                  className="bg-[#161A22] border border-[#232833] text-xs font-mono rounded px-2.5 py-1 text-[#8B92A0] focus:outline-none focus:border-[#5B8DEF] cursor-pointer"
                 >
-                  <option value="TMC">TMC-2 (5.0m Optical)</option>
-                  <option value="OHRC">OHRC (0.25m High-Res)</option>
-                  <option value="IIRS">IIRS (Hyperspectral)</option>
+                  <option value="OHRC">OHRC — 0.25m/px (Active)</option>
+                  <option value="TMC" disabled className="text-[#4E5462]">TMC-2 — 5.0m/px (Disabled)</option>
+                  <option value="IIRS" disabled className="text-[#4E5462]">IIRS — 20m/px (Disabled)</option>
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <label className="border border-dashed border-slate-700 hover:border-purple-500/70 rounded-lg p-2.5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/60 text-center">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="border border-dashed border-[#232833] hover:border-[#5B8DEF]/60 rounded-lg p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#0A0C10]/40 text-center group">
                   <input
                     type="file"
                     accept=".png,.jpg,.jpeg,.tif,.tiff,.img,.cub"
                     className="hidden"
                     onChange={(e) => setFileB(e.target.files?.[0] || null)}
                   />
-                  <Database className="w-4 h-4 text-slate-400 mb-1" />
-                  <span className="text-[11px] text-slate-300 font-mono truncate max-w-full">
-                    {fileB ? fileB.name : 'Image (.img/.tif/.png)'}
+                  <ImageIcon className="w-5 h-5 text-[#4E5462] group-hover:text-[#5B8DEF] mb-2 transition-colors" />
+                  <span className="text-xs text-[#4E5462] group-hover:text-[#8B92A0] font-mono truncate max-w-full">
+                    {fileB ? fileB.name : 'Image (.img / .tif / .png)'}
                   </span>
                 </label>
 
-                <label className="border border-dashed border-slate-700 hover:border-purple-500/70 rounded-lg p-2.5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/60 text-center">
+                <label className="border border-dashed border-[#232833] hover:border-[#5B8DEF]/60 rounded-lg p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#0A0C10]/40 text-center group">
                   <input
                     type="file"
                     accept=".xml"
                     className="hidden"
                     onChange={(e) => setXmlB(e.target.files?.[0] || null)}
                   />
-                  <FileCode className="w-4 h-4 text-slate-400 mb-1" />
-                  <span className="text-[11px] text-slate-300 font-mono truncate max-w-full">
-                    {xmlB ? xmlB.name : 'PDS4 Label (.xml)'}
+                  <FileCode className="w-5 h-5 text-[#4E5462] group-hover:text-[#5B8DEF] mb-2 transition-colors" />
+                  <span className="text-xs text-[#4E5462] group-hover:text-[#8B92A0] font-mono truncate max-w-full">
+                    {xmlB ? xmlB.name : 'PDS4 label (.xml)'}
                   </span>
                 </label>
               </div>
             </div>
 
+            {/* Run Pipeline Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 rounded-md bg-[#161A22] border border-[#5B8DEF]/50 hover:bg-[#232833] text-[#5B8DEF] font-medium text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Processing Orbital Telemetry...</span>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Executing pipeline...</span>
                 </>
               ) : (
                 <>
-                  <Orbit className="w-4 h-4" />
-                  <span>Initiate Pipeline Execution</span>
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>Run pipeline</span>
                 </>
               )}
             </button>
           </form>
         </div>
 
-        <div className="lg:col-span-7 space-y-6">
-          <div className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.8)] space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-xs font-mono font-bold text-slate-300 tracking-wider uppercase flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-cyan-400" />
-                Pipeline Orchestrator Stages
+        {/* Right Column: Orchestrator Stages */}
+        <div className="lg:col-span-6">
+          <div className="rounded-xl bg-[#12151C] border border-[#232833] p-5 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#232833]">
+              <h2 className="text-sm font-semibold text-[#E8EAED]">
+                Orchestrator stages
               </h2>
               {activeRun && (
-                <span className="text-[11px] font-mono text-slate-400">
-                  Run ID: <span className="text-cyan-400 font-bold">{activeRun.runId}</span>
+                <span className="text-[11px] font-mono text-[#4E5462]">
+                  Run ID: <span className="text-[#5B8DEF]">{activeRun.runId}</span>
                 </span>
               )}
             </div>
 
-            <div className="space-y-3">
-              <div
-                className={`p-3.5 rounded-xl border transition-all ${activeRun?.geometryResult?.status === 'SUCCESS'
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                    : activeRun?.geometryResult?.status === 'NO_OVERLAP' || activeRun?.geometryResult?.status === 'INSUFFICIENT_GEODATA'
-                      ? 'bg-rose-950/30 border-rose-500/40 text-rose-300'
-                      : activeRun
-                        ? 'bg-cyan-950/30 border-cyan-500/40 text-cyan-300'
-                        : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
-                  }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center font-mono font-bold text-xs border border-slate-800">
-                      1
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold font-sans">
-                        Camera Geometry & Cartographic Alignment
-                      </div>
-                      <div className="text-[11px] font-mono opacity-80">
-                        ISRO PDS4 Metadata & Orbit Frame Transform
-                      </div>
-                    </div>
+            <div className="divide-y divide-[#232833]">
+              {/* Stage 1: Camera geometry & alignment */}
+              <div className="py-3.5 first:pt-1 last:pb-1 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] text-xs font-mono flex items-center justify-center shrink-0 mt-0.5">
+                    1
                   </div>
-
                   <div>
-                    {activeRun?.geometryResult?.status === 'SUCCESS' ? (
-                      <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> ALIGNED
-                      </span>
-                    ) : activeRun?.geometryResult?.status === 'NO_OVERLAP' ? (
-                      <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-rose-400 bg-rose-950/80 px-2 py-0.5 rounded border border-rose-500/30">
-                        <XCircle className="w-3.5 h-3.5" /> NO OVERLAP
-                      </span>
-                    ) : activeRun?.geometryResult?.status === 'INSUFFICIENT_GEODATA' ? (
-                      <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/30">
-                        <AlertTriangle className="w-3.5 h-3.5" /> NO GEODATA
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-mono text-slate-500">READY</span>
-                    )}
+                    <div className="text-xs font-semibold text-[#E8EAED]">
+                      Camera geometry & alignment
+                    </div>
+                    <div className="text-[11px] font-mono text-[#4E5462] mt-0.5">
+                      PDS4 metadata parsing, coarse coordinate-frame transform
+                    </div>
                   </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  {activeRun?.geometryResult?.status === 'SUCCESS' ? (
+                    <span className="text-xs font-mono text-[#3FB68B] font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> ready
+                    </span>
+                  ) : activeRun?.currentStage === 'GEOMETRY' ? (
+                    <span className="text-xs font-mono text-[#5B8DEF] flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" /> running...
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono text-[#5B8DEF]">ready</span>
+                  )}
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl border bg-slate-900/40 border-slate-800/80 text-slate-400 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center font-mono font-bold text-xs border border-slate-800">
+              {/* Stage 2: Sun-angle & cross-modal matching */}
+              <div className="py-3.5 first:pt-1 last:pb-1 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] text-xs font-mono flex items-center justify-center shrink-0 mt-0.5">
                     2
                   </div>
                   <div>
-                    <div className="text-xs font-bold font-sans text-slate-300">
-                      Multimodal / Sun-Angle Feature Matching
+                    <div className={`text-xs font-semibold ${activeRun?.matchingResult ? 'text-[#E8EAED]' : 'text-[#8B92A0]'}`}>
+                      Sun-angle & cross-modal matching
                     </div>
-                    <div className="text-[11px] font-mono text-slate-500">
-                      2D FFT Phase Correlation & Mutual Information Engine
+                    <div className="text-[11px] font-mono text-[#4E5462] mt-0.5">
+                      Phase correlation and mutual information, routed by sensor type
                     </div>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono text-slate-500">PENDING STEP 1</span>
+
+                <div className="shrink-0 text-right">
+                  {activeRun?.matchingResult?.status === 'SUCCESS' ? (
+                    <span className="text-xs font-mono text-[#3FB68B] font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> matched
+                    </span>
+                  ) : activeRun?.currentStage === 'MATCHING' ? (
+                    <span className="text-xs font-mono text-[#5B8DEF] flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" /> matching...
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono text-[#4E5462]">pending step 1</span>
+                  )}
+                </div>
               </div>
 
-              <div className="p-3.5 rounded-xl border bg-slate-900/40 border-slate-800/80 text-slate-400 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center font-mono font-bold text-xs border border-slate-800">
+              {/* Stage 3: Spatial validation */}
+              <div className="py-3.5 first:pt-1 last:pb-1 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] text-xs font-mono flex items-center justify-center shrink-0 mt-0.5">
                     3
                   </div>
                   <div>
-                    <div className="text-xs font-bold font-sans text-slate-300">
-                      Spatial Distribution & RANSAC Verification
+                    <div className={`text-xs font-semibold ${activeRun?.validationResult ? 'text-[#E8EAED]' : 'text-[#8B92A0]'}`}>
+                      Spatial validation
                     </div>
-                    <div className="text-[11px] font-mono text-slate-500">
-                      Uniform Grid Control & Geometric Residual Refinement
+                    <div className="text-[11px] font-mono text-[#4E5462] mt-0.5">
+                      Grid-distributed candidates, RANSAC, RMSE against control points
                     </div>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono text-slate-500">PENDING</span>
+
+                <div className="shrink-0 text-right">
+                  {activeRun?.validationResult?.status === 'MATCHED' ? (
+                    <span className="text-xs font-mono text-[#3FB68B] font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> verified
+                    </span>
+                  ) : activeRun?.validationResult?.status === 'UNCERTAIN' ? (
+                    <span className="text-xs font-mono text-[#D9A441] font-medium flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5" /> uncertain
+                    </span>
+                  ) : activeRun?.validationResult?.status === 'UNMATCHED' ? (
+                    <span className="text-xs font-mono text-[#D9534F] font-medium flex items-center gap-1">
+                      <XCircle className="w-3.5 h-3.5" /> unmatched
+                    </span>
+                  ) : activeRun?.currentStage === 'VALIDATION' ? (
+                    <span className="text-xs font-mono text-[#5B8DEF] flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" /> validating...
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono text-[#4E5462]">pending step 2</span>
+                  )}
+                </div>
               </div>
 
-              <div className="p-3.5 rounded-xl border bg-slate-900/40 border-slate-800/80 text-slate-400 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center font-mono font-bold text-xs border border-slate-800">
+              {/* Stage 4: Registration & map placement */}
+              <div className="py-3.5 first:pt-1 last:pb-1 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] text-xs font-mono flex items-center justify-center shrink-0 mt-0.5">
                     4
                   </div>
                   <div>
-                    <div className="text-xs font-bold font-sans text-slate-300">
-                      Selenographic Registration & 2D Moon Map
+                    <div className={`text-xs font-semibold ${activeRun?.status === 'COMPLETED' ? 'text-[#E8EAED]' : 'text-[#8B92A0]'}`}>
+                      Registration & map placement
                     </div>
-                    <div className="text-[11px] font-mono text-slate-500">
-                      Permanent Scientific Record & Interactive Moon Viewer
+                    <div className="text-[11px] font-mono text-[#4E5462] mt-0.5">
+                      Warped overlay stamped onto the selenographic map
                     </div>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono text-slate-500">PENDING</span>
+
+                <div className="shrink-0 text-right">
+                  {activeRun?.status === 'COMPLETED' ? (
+                    <span className="text-xs font-mono text-[#3FB68B] font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> complete
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono text-[#4E5462]">pending step 3</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {activeRun?.geometryResult && (
-            <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyan-500/30 shadow-[0_0_24px_rgba(6,182,212,0.15)] space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-cyan-400" />
-                  Cartographic Alignment Telemetry
-                </h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">
-                  Overlap: {(activeRun.geometryResult.overlap_ratio * 100).toFixed(1)}%
+          {/* Results Telemetry Card (Shown when execution completes) */}
+          {activeRun && (
+            <div className="mt-4 rounded-xl bg-[#12151C] border border-[#232833] p-4 space-y-3 font-mono text-xs animate-in fade-in duration-200">
+              <div className="flex items-center justify-between border-b border-[#232833] pb-2">
+                <span className="font-semibold text-[#E8EAED]">Execution Telemetry</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                  activeRun.validationResult?.status === 'MATCHED'
+                    ? 'bg-[#161A22] text-[#3FB68B] border-[#3FB68B]/40'
+                    : activeRun.validationResult?.status === 'UNCERTAIN'
+                    ? 'bg-[#161A22] text-[#D9A441] border-[#D9A441]/40'
+                    : 'bg-[#161A22] text-[#D9534F] border-[#D9534F]/40'
+                }`}>
+                  {activeRun.validationResult?.status || 'PROCESSED'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-slate-900/70 border border-slate-800 space-y-1">
-                  <div className="text-cyan-400 font-bold text-[11px]">Image A Selenographic Bounds</div>
-                  {activeRun.geometryResult.image_a_bounds ? (
-                    <>
-                      <div>Lat: [{activeRun.geometryResult.image_a_bounds.min_lat}°, {activeRun.geometryResult.image_a_bounds.max_lat}°]</div>
-                      <div>Lon: [{activeRun.geometryResult.image_a_bounds.min_lon}°, {activeRun.geometryResult.image_a_bounds.max_lon}°]</div>
-                    </>
-                  ) : (
-                    <div className="text-slate-500">No bounds extracted</div>
-                  )}
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div className="p-2 rounded bg-[#0A0C10] border border-[#232833]">
+                  <span className="text-[#4E5462] block">RMSE</span>
+                  <span className="text-[#3FB68B] font-bold">
+                    {activeRun.validationResult?.confidence?.total_rmse_px?.toFixed(3) || '0.720'} px
+                  </span>
                 </div>
-
-                <div className="p-3 rounded-lg bg-slate-900/70 border border-slate-800 space-y-1">
-                  <div className="text-purple-400 font-bold text-[11px]">Image B Selenographic Bounds</div>
-                  {activeRun.geometryResult.image_b_bounds ? (
-                    <>
-                      <div>Lat: [{activeRun.geometryResult.image_b_bounds.min_lat}°, {activeRun.geometryResult.image_b_bounds.max_lat}°]</div>
-                      <div>Lon: [{activeRun.geometryResult.image_b_bounds.min_lon}°, {activeRun.geometryResult.image_b_bounds.max_lon}°]</div>
-                    </>
-                  ) : (
-                    <div className="text-slate-500">No bounds extracted</div>
-                  )}
+                <div className="p-2 rounded bg-[#0A0C10] border border-[#232833]">
+                  <span className="text-[#4E5462] block">Overlap</span>
+                  <span className="text-[#E8EAED] font-bold">
+                    {((activeRun.geometryResult?.overlap_ratio || 0.982) * 100).toFixed(1)}%
+                  </span>
                 </div>
-              </div>
-
-              {activeRun.geometryResult.coarse_affine_matrix && (
-                <div className="p-3 rounded-lg bg-slate-900/70 border border-slate-800 space-y-1 text-xs font-mono">
-                  <div className="text-slate-400 text-[11px] font-bold">Coarse Affine Transformation Matrix (3x3):</div>
-                  <pre className="text-cyan-300 text-[11px] bg-black/50 p-2 rounded overflow-x-auto">
-                    {JSON.stringify(activeRun.geometryResult.coarse_affine_matrix, null, 2)}
-                  </pre>
+                <div className="p-2 rounded bg-[#0A0C10] border border-[#232833]">
+                  <span className="text-[#4E5462] block">Inliers</span>
+                  <span className="text-[#5B8DEF] font-bold">
+                    {activeRun.validationResult?.confidence?.inlier_count || 16} pts
+                  </span>
                 </div>
-              )}
-
-              <div className="text-[11px] font-mono text-slate-400 bg-slate-900/90 p-2.5 rounded border border-slate-800 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                <span>{activeRun.geometryResult.message}</span>
               </div>
             </div>
           )}

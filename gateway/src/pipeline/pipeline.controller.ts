@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Param, Body, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseInterceptors, UploadedFiles, BadRequestException, Res, NotFoundException } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PipelineService } from './pipeline.service';
 import { Instrument } from '../images/schemas/raw-image.schema';
 
@@ -49,8 +52,44 @@ export class PipelineController {
     return await this.pipelineService.registerSampleDataset(sampleId);
   }
 
+  @Get('runs')
+  async getAllRuns() {
+    return await this.pipelineService.getAllRuns();
+  }
+
+  @Get('observations')
+  async getObservations() {
+    return await this.pipelineService.getAllRuns();
+  }
+
   @Get('run/:runId')
   async getRunStatus(@Param('runId') runId: string) {
     return await this.pipelineService.getRun(runId);
+  }
+
+  @Get('run/:runId/image-a')
+  async getImageA(@Param('runId') runId: string, @Res() res: Response) {
+    try {
+      const filePath = await this.pipelineService.getImagePath(runId, 'A');
+      if (!fs.existsSync(filePath)) {
+        throw new NotFoundException(`Image A file not found`);
+      }
+      return res.sendFile(path.resolve(filePath));
+    } catch (e: any) {
+      throw new NotFoundException(e.message);
+    }
+  }
+
+  @Get('run/:runId/image-b')
+  async getImageB(@Param('runId') runId: string, @Res() res: Response) {
+    try {
+      const filePath = await this.pipelineService.getImagePath(runId, 'B');
+      if (!fs.existsSync(filePath)) {
+        throw new NotFoundException(`Image B file not found`);
+      }
+      return res.sendFile(path.resolve(filePath));
+    } catch (e: any) {
+      throw new NotFoundException(e.message);
+    }
   }
 }

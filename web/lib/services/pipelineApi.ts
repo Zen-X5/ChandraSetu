@@ -33,6 +33,10 @@ export interface PipelineRunResponse {
       center_lat?: number;
       center_lon?: number;
     };
+    // PDS4 4-corner precise footprints — present when XML label is provided
+    // Each key is upper_left / upper_right / lower_left / lower_right → [lat_deg, lon_deg]
+    image_a_corners?: Record<string, [number, number]>;
+    image_b_corners?: Record<string, [number, number]>;
     overlap_bounds?: {
       min_lat: number;
       max_lat: number;
@@ -43,8 +47,69 @@ export interface PipelineRunResponse {
     coarse_affine_matrix?: number[][];
     details?: Record<string, unknown>;
   };
-  matchingResult?: Record<string, unknown>;
-  validationResult?: Record<string, unknown>;
+  matchingResult?: {
+    status: 'SUCCESS' | 'NO_MATCHES' | 'SKIPPED' | 'ERROR';
+    message: string;
+    method_used: string;
+    candidate_matches: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      confidence: number;
+      method: string;
+      grid_row?: number;
+      grid_col?: number;
+    }>;
+    spatial_coverage_ratio?: number;
+    peak_correlation_score?: number;
+    scale_factor?: number;
+    rotation_deg?: number;
+    details?: Record<string, unknown>;
+  };
+  validationResult?: {
+    status: 'MATCHED' | 'UNCERTAIN' | 'UNMATCHED';
+    message: string;
+    final_transform_matrix: number[][];
+    residual_transform_matrix?: number[][];
+    confidence: {
+      inlier_count: number;
+      total_candidates: number;
+      inlier_ratio: number;
+      rmse_x_px: number;
+      rmse_y_px: number;
+      total_rmse_px: number;
+      spatial_distribution_score: number;
+      match_status: 'MATCHED' | 'UNCERTAIN' | 'UNMATCHED';
+    };
+    inlier_matches: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      residual_error_px: number;
+      is_inlier: boolean;
+      grid_row?: number;
+      grid_col?: number;
+    }>;
+    outlier_matches: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      residual_error_px: number;
+      is_inlier: boolean;
+      grid_row?: number;
+      grid_col?: number;
+    }>;
+    details?: {
+      rmse_x?: number;
+      rmse_y?: number;
+      total_rmse?: number;
+      spatial_entropy?: number;
+      ransac_iterations_used?: number;
+    };
+  };
   errorMessage?: string;
   createdAt: string;
   updatedAt: string;
@@ -76,6 +141,10 @@ export const pipelineApi = api.injectEndpoints({
       query: (runId) => `/pipeline/run/${runId}`,
       providesTags: (_result, _error, id) => [{ type: 'PipelineRun', id }],
     }),
+    getAllObservations: builder.query<PipelineRunResponse[], void>({
+      query: () => '/pipeline/observations',
+      providesTags: ['PipelineRun'],
+    }),
   }),
 });
 
@@ -84,4 +153,5 @@ export const {
   useRegisterSampleMutation,
   useRegisterPairMutation,
   useGetRunStatusQuery,
+  useGetAllObservationsQuery,
 } = pipelineApi;

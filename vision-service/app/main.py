@@ -1,8 +1,13 @@
 import os
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.schemas.geometry import CoarseAlignmentRequest, CoarseAlignmentResponse
+from app.schemas.matching import MatchingRequest, MatchingResponse
+from app.schemas.validation import ValidationRequest, ValidationResponse
 from app.geometry.camera_geometry import align_camera_geometry
+from app.matching.router import route_and_match_pair
+from app.validation.ransac import validate_and_refine_correspondences
 
 app = FastAPI(
     title="ChandraSetu Vision Service",
@@ -59,4 +64,45 @@ def align_coarse(request: CoarseAlignmentRequest):
         manual_bounds_b=img_b.manual_bounds
     )
 
+    return result
+
+@app.post(
+    "/api/v1/matching/run",
+    response_model=MatchingResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Step 2: Signal Processing & Cross-Modal Feature Matching (Sahid & Khushi)"
+)
+def run_feature_matching(request: MatchingRequest):
+    """
+    Step 2 of ChandraSetu pipeline:
+    Runs sub-pixel phase correlation, CLAHE shadow normalization, Fourier-Mellin scale/rotation
+    recovery, and extracts spatially uniform grid correspondences.
+    """
+    if not os.path.exists(request.image_a_path):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Image A file not found at path: {request.image_a_path}"
+        )
+    if not os.path.exists(request.image_b_path):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Image B file not found at path: {request.image_b_path}"
+        )
+
+    result = route_and_match_pair(request)
+    return result
+
+@app.post(
+    "/api/v1/validation/verify",
+    response_model=ValidationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Step 3: RANSAC Validation & Precision Metrics (Urmi)"
+)
+def verify_registration(request: ValidationRequest):
+    """
+    Step 3 of ChandraSetu pipeline:
+    Runs RANSAC homography estimation with spatial distribution scoring, computes split-axis
+    RMSE (RMSE_X, RMSE_Y) per SAC/ISRO 2025 standard, and confirms match validity.
+    """
+    result = validate_and_refine_correspondences(request)
     return result

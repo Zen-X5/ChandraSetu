@@ -6,7 +6,7 @@ import {
   useCreateUserMutation,
   useDeleteUserMutation,
 } from '@/lib/services/userApi';
-import { FlaskConical, Search, UserPlus, Trash2, X, Loader2, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { FlaskConical, Search, UserPlus, Trash2, X, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ScientistsDirectoryPage() {
   const { data: users, isLoading, error } = useGetUsersQuery();
@@ -75,16 +75,13 @@ export default function ScientistsDirectoryPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-
+    <div className="space-y-6 max-w-[1600px] mx-auto font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-extrabold tracking-tight text-white font-sans">
-              Mission Scientists
-            </h1>
-          </div>
-          <p className="text-xs text-slate-400 font-mono mt-1">
+          <h1 className="text-xl font-bold tracking-tight text-[#E8EAED]">
+            Mission Scientists
+          </h1>
+          <p className="text-xs text-[#8B92A0] font-mono mt-0.5">
             Chandrayaan-2 Lunar Surface Image Correspondence & Registration Research Staff
           </p>
         </div>
@@ -96,90 +93,88 @@ export default function ScientistsDirectoryPage() {
             setFormSuccess(null);
             setIsModalOpen(true);
           }}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:brightness-110 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all cursor-pointer active:scale-95 shrink-0"
+          className="px-3.5 py-1.5 rounded-lg bg-[#161A22] border border-[#232833] hover:border-[#5B8DEF] text-[#5B8DEF] font-mono text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
         >
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="w-3.5 h-3.5" />
           <span>Add Scientist</span>
         </button>
       </div>
 
-      <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800/90 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div className="p-3 rounded-xl bg-[#12151C] border border-[#232833] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-3.5 h-3.5 text-[#4E5462] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search scientist by name or email..."
+            placeholder="Filter scientists..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-purple-500/60 transition-colors font-mono"
+            className="w-full pl-9 pr-3 py-1.5 rounded-md bg-[#0A0C10] border border-[#232833] text-xs text-[#E8EAED] placeholder:text-[#4E5462] focus:outline-none focus:border-[#5B8DEF] transition-colors font-mono"
           />
         </div>
-        <div className="text-xs font-mono text-slate-400">
-          Total Scientists: <span className="text-purple-300 font-bold">{scientists.length}</span>
+
+        <div className="text-xs font-mono text-[#8B92A0]">
+          Total Researchers: <span className="text-[#5B8DEF] font-bold">{scientists.length}</span>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-slate-950/90 border border-slate-800/90 overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.8)]">
+      <div className="rounded-xl bg-[#12151C] border border-[#232833] overflow-hidden">
         {isLoading ? (
           <div className="p-12 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-            <p className="text-xs font-mono text-slate-400">Loading scientists database...</p>
+            <Loader2 className="w-6 h-6 text-[#5B8DEF] animate-spin" />
+            <p className="text-xs font-mono text-[#8B92A0]">Loading scientist records...</p>
           </div>
         ) : error ? (
-          <div className="p-8 flex items-center justify-center gap-3 text-rose-400">
+          <div className="p-8 flex items-center justify-center gap-3 text-[#D9534F]">
             <AlertCircle className="w-5 h-5" />
-            <p className="text-xs font-mono">Failed to fetch scientists list.</p>
+            <p className="text-xs font-mono">Failed to fetch scientists.</p>
           </div>
         ) : filteredScientists.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 font-mono text-xs">
-            {scientists.length === 0
-              ? 'No scientists registered yet. Click "Add Scientist" above to register research personnel.'
-              : 'No scientists matching search query.'}
+          <div className="p-12 text-center text-[#4E5462] font-mono text-xs">
+            No scientists currently registered. Add your first researcher.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-slate-800/80 bg-slate-900/50 text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">Scientist Name</th>
-                  <th className="py-3 px-4">Domain Focus</th>
-                  <th className="py-3 px-4">Clearance</th>
-                  <th className="py-3 px-4">Date Assigned</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr className="border-b border-[#232833] text-[10px] font-mono text-[#4E5462] uppercase tracking-wider">
+                  <th className="py-3 px-4 font-semibold">Scientist</th>
+                  <th className="py-3 px-4 font-semibold">Specialization</th>
+                  <th className="py-3 px-4 font-semibold">Clearance</th>
+                  <th className="py-3 px-4 font-semibold">Joined Date</th>
+                  <th className="py-3 px-4 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-900/80 text-xs">
+              <tbody className="divide-y divide-[#232833] text-xs font-mono">
                 {filteredScientists.map((person) => {
                   const initials = person.name.substring(0, 2).toUpperCase();
 
                   return (
-                    <tr key={person.userId} className="hover:bg-slate-900/30 transition-colors group">
-
+                    <tr key={person.userId} className="hover:bg-[#161A22] transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-cyan-700 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md">
+                          <div className="w-7 h-7 rounded bg-[#161A22] border border-[#232833] text-[#5B8DEF] flex items-center justify-center font-bold text-[11px] shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <div className="font-bold text-slate-200">{person.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">{person.email}</div>
+                            <div className="font-sans font-medium text-[#E8EAED]">{person.name}</div>
+                            <div className="text-[11px] text-[#8B92A0]">{person.email}</div>
                           </div>
                         </div>
                       </td>
 
+                      <td className="py-3.5 px-4 text-[#8B92A0] font-sans text-xs">
+                        Planetary Photogrammetry & DEM
+                      </td>
+
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-purple-950/80 border border-purple-500/40 text-purple-300">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-[#161A22] border border-[#5B8DEF]/40 text-[#5B8DEF]">
                           <FlaskConical className="w-3 h-3" />
-                          <span>Lunar Science Pipeline</span>
+                          <span>Level 3 · Science</span>
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 font-mono text-cyan-300 text-[11px]">
-                        Level 3 · Science Data Access
-                      </td>
-
-                      <td className="py-3.5 px-4 font-mono text-slate-400 text-[11px]">
-                        {person.createdAt ? new Date(person.createdAt).toLocaleDateString() : 'Active Mission'}
+                      <td className="py-3.5 px-4 text-[#4E5462] text-[11px]">
+                        {person.createdAt ? new Date(person.createdAt).toLocaleDateString() : 'Mission Baseline'}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
@@ -187,13 +182,12 @@ export default function ScientistsDirectoryPage() {
                           type="button"
                           onClick={() => handleDeleteScientist(person.userId, person.name)}
                           disabled={isDeleting}
-                          className="p-1.5 rounded-lg bg-rose-950/30 hover:bg-rose-900/50 border border-rose-500/30 hover:border-rose-400 text-rose-400 hover:text-rose-200 transition-all cursor-pointer disabled:opacity-50"
-                          title="Revoke scientist clearance"
+                          className="p-1.5 rounded text-[#8B92A0] hover:text-[#D9534F] hover:bg-[#161A22] transition-colors cursor-pointer disabled:opacity-50"
+                          title="Revoke clearance"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </td>
-
                     </tr>
                   );
                 })}
@@ -205,100 +199,92 @@ export default function ScientistsDirectoryPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md rounded-2xl bg-slate-900 border border-purple-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.3)] overflow-hidden animate-in zoom-in-95 duration-200">
-
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-400" />
-                <h3 className="text-sm font-bold text-white font-sans">
-                  Register Mission Scientist
-                </h3>
-              </div>
+          <div className="relative w-full max-w-md rounded-xl bg-[#12151C] border border-[#232833] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-[#232833] flex items-center justify-between bg-[#0A0C10]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E8EAED]">
+                Register New Scientist
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-6 h-6 rounded bg-[#161A22] hover:bg-[#232833] text-[#8B92A0] hover:text-[#E8EAED] flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateScientist} className="p-5 space-y-4">
-
+            <form onSubmit={handleCreateScientist} className="p-5 space-y-4 font-sans">
               {formError && (
-                <div className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-2.5 rounded-md bg-[#161A22] border border-[#D9534F]/50 text-[#D9534F] text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#D9534F] shrink-0" />
                   <span>{formError}</span>
                 </div>
               )}
 
               {formSuccess && (
-                <div className="p-2.5 rounded-lg bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="p-2.5 rounded-md bg-[#161A22] border border-[#3FB68B]/50 text-[#3FB68B] text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#3FB68B] shrink-0" />
                   <span>{formSuccess}</span>
                 </div>
               )}
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Scientist Full Name</label>
+                <label className="text-xs font-medium text-[#8B92A0]">Scientist Full Name</label>
                 <input
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Dr. K. Sivan"
                   required
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-500/60 font-sans"
+                  className="w-full px-3 py-1.5 rounded-md bg-[#0A0C10] border border-[#232833] text-xs text-[#E8EAED] placeholder:text-[#4E5462] focus:outline-none focus:border-[#5B8DEF]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Scientist Email / Callsign</label>
+                <label className="text-xs font-medium text-[#8B92A0]">Official Email</label>
                 <input
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="scientist@isro.gov.in"
+                  placeholder="sivan@isro.gov.in"
                   required
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-500/60 font-mono"
+                  className="w-full px-3 py-1.5 rounded-md bg-[#0A0C10] border border-[#232833] text-xs text-[#E8EAED] placeholder:text-[#4E5462] focus:outline-none focus:border-[#5B8DEF] font-mono"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Initial Access Password</label>
+                <label className="text-xs font-medium text-[#8B92A0]">Security Access Key</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-500/60 font-mono"
+                  className="w-full px-3 py-1.5 rounded-md bg-[#0A0C10] border border-[#232833] text-xs text-[#E8EAED] placeholder:text-[#4E5462] focus:outline-none focus:border-[#5B8DEF] font-mono"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2 font-mono">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium cursor-pointer transition-colors"
+                  className="px-3 py-1.5 rounded-md bg-[#0A0C10] hover:bg-[#161A22] text-[#8B92A0] text-xs cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:brightness-110 text-white text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.4)] cursor-pointer transition-all disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-md bg-[#161A22] border border-[#5B8DEF]/50 hover:bg-[#232833] text-[#5B8DEF] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                 >
                   {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  <span>Grant Scientist Clearance</span>
+                  <span>Grant Science Access</span>
                 </button>
               </div>
-
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

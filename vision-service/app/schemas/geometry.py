@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any, Literal
+from typing import Optional, List, Dict, Any, Tuple, Literal
 from pydantic import BaseModel, Field
 
 class SelenographicBounds(BaseModel):
@@ -25,6 +25,14 @@ class CoarseAlignmentResponse(BaseModel):
     message: str
     image_a_bounds: Optional[SelenographicBounds] = None
     image_b_bounds: Optional[SelenographicBounds] = None
+    # 4-corner precise footprint (upper_left, upper_right, lower_left, lower_right)
+    # Each value is [lat_deg, lon_deg]. Present only when PDS4 XML corner metadata is available.
+    image_a_corners: Optional[Dict[str, List[float]]] = Field(
+        None, description="PDS4 4-corner footprint for Image A {upper_left:[lat,lon], ...}"
+    )
+    image_b_corners: Optional[Dict[str, List[float]]] = Field(
+        None, description="PDS4 4-corner footprint for Image B {upper_left:[lat,lon], ...}"
+    )
     overlap_bounds: Optional[SelenographicBounds] = None
     overlap_ratio: float = Field(0.0, description="Estimated overlapping area fraction (0.0 to 1.0)")
     coarse_affine_matrix: Optional[List[List[float]]] = Field(None, description="2x3 or 3x3 coarse alignment matrix")

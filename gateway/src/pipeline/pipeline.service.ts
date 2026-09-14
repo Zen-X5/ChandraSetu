@@ -83,10 +83,82 @@ export class PipelineService {
 
       const geometryResult = await response.json();
       run.geometryResult = geometryResult;
+      run.imageAUrl = `/api/pipeline/run/${runId}/image-a`;
+      run.imageBUrl = `/api/pipeline/run/${runId}/image-b`;
 
       if (geometryResult.status === 'SUCCESS') {
         run.currentStage = PipelineStage.MATCHING;
         this.logger.log(`Step 1 (Camera Geometry Alignment) succeeded for run ${runId}`);
+
+        // Step 2: Invoke Sahid's Signal Processing / Feature Matching Engine
+        const imageACommon = geometryResult.details?.image_a_common_ref || imageAPath;
+        const imageBCommon = geometryResult.details?.image_b_common_ref || imageBPath;
+
+        const absA = path.isAbsolute(imageACommon) ? imageACommon : path.resolve(process.cwd(), '..', 'vision-service', imageACommon);
+        const absB = path.isAbsolute(imageBCommon) ? imageBCommon : path.resolve(process.cwd(), '..', 'vision-service', imageBCommon);
+
+        const matchPayload = {
+          image_a_path: absA,
+          image_b_path: absB,
+          instrument_a: instrumentA,
+          instrument_b: instrumentB,
+          grid_divisions: 4,
+          use_fourier_mellin: true,
+          enable_clahe: true,
+        };
+
+        const matchResponse = await fetch(`${this.visionServiceUrl}/api/v1/matching/run`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(matchPayload),
+        });
+
+        if (!matchResponse.ok) {
+          const matchErr = await matchResponse.text();
+          this.logger.error(`Matching module error for run ${runId}: ${matchErr}`);
+          run.currentStage = PipelineStage.FAILED;
+          run.status = RunStatus.FAILED;
+          run.errorMessage = `Matching module error: ${matchErr}`;
+          return await run.save();
+        }
+
+        const matchingResult = await matchResponse.json();
+        run.matchingResult = matchingResult;
+        this.logger.log(`Step 2 (Feature Matching) finished for run ${runId} with status: ${matchingResult.status}`);
+
+        // Step 3: Invoke Urmi's RANSAC Validation & Precision Metrics Engine
+        run.currentStage = PipelineStage.VALIDATION;
+        const registeredOutputPath = path.resolve(process.cwd(), '..', 'vision-service', 'uploads', 'coarse_aligned', `${runId}_image_a_registered.png`);
+        const valPayload = {
+          candidate_matches: matchingResult.candidate_matches || [],
+          coarse_transform: geometryResult.coarse_affine_matrix || null,
+          image_a_path: absA,
+          image_b_path: absB,
+          output_warped_path: registeredOutputPath,
+          ransac_threshold_px: 2.5,
+          grid_divisions: 4,
+        };
+
+        const valResponse = await fetch(`${this.visionServiceUrl}/api/v1/validation/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(valPayload),
+        });
+
+        if (!valResponse.ok) {
+          const valErr = await valResponse.text();
+          this.logger.error(`Validation module error for run ${runId}: ${valErr}`);
+          run.currentStage = PipelineStage.FAILED;
+          run.status = RunStatus.FAILED;
+          run.errorMessage = `Validation module error: ${valErr}`;
+          return await run.save();
+        }
+
+        const validationResult = await valResponse.json();
+        run.validationResult = validationResult;
+        run.currentStage = PipelineStage.COMPLETED;
+        run.status = RunStatus.COMPLETED;
+        this.logger.log(`Step 3 (RANSAC Validation) finished for run ${runId} with status: ${validationResult.status}`);
       } else {
         run.status = RunStatus.FAILED;
         run.currentStage = PipelineStage.FAILED;
@@ -160,6 +232,8 @@ export class PipelineService {
       runId,
       sourceImageId: rawImageA._id,
       referenceImageId: rawImageB._id,
+      imageAUrl: `/api/pipeline/run/${runId}/image-a`,
+      imageBUrl: `/api/pipeline/run/${runId}/image-b`,
       currentStage: PipelineStage.INGESTION,
       status: RunStatus.RUNNING,
       initiatedBy: userId ? new Types.ObjectId(userId) : undefined,
@@ -275,5 +349,108 @@ export class PipelineService {
       throw new NotFoundException(`Run ${runId} not found`);
     }
     return run;
+  }
+
+  async getAllRuns(): Promise<PipelineRunDocument[]> {
+    return await this.pipelineRunModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate('sourceImageId')
+      .populate('referenceImageId')
+      .limit(50);
+  }
+
+  async getImagePath(runId: string, type: 'A' | 'B'): Promise<string> {
+    const run = await this.pipelineRunModel
+      .findOne({ runId })
+      .populate('sourceImageId')
+      .populate('referenceImageId');
+
+    if (!run) {
+      throw new NotFoundException(`Run ${runId} not found`);
+    }
+
+    const candidatePaths: string[] = [];
+
+    // 1. For Image A, check if OpenCV co-registered warped image exists
+    if (type === 'A') {
+      candidatePaths.push(
+        path.resolve(process.cwd(), '..', 'vision-service', 'uploads', 'coarse_aligned', `${runId}_image_a_registered.png`),
+        path.resolve(process.cwd(), '..', 'uploads', 'coarse_aligned', `${runId}_image_a_registered.png`),
+        path.resolve(process.cwd(), '..', 'vision-service', 'uploads', 'coarse_aligned', `image_a_registered.png`),
+      );
+    }
+
+    // 2. Check coarse-aligned PNG generated by Rashel's module
+    if (type === 'A' && run.geometryResult?.details?.image_a_common_ref) {
+      candidatePaths.push(run.geometryResult.details.image_a_common_ref);
+    } else if (type === 'B' && run.geometryResult?.details?.image_b_common_ref) {
+      candidatePaths.push(run.geometryResult.details.image_b_common_ref);
+    }
+
+    // 2. Check source/reference raw storage if it is already a browser-viewable format
+    const rawDoc = type === 'A' ? (run.sourceImageId as any) : (run.referenceImageId as any);
+    if (rawDoc?.storageRef) {
+      const ext = path.extname(rawDoc.storageRef).toLowerCase();
+      if (['.png', '.jpg', '.jpeg', '.webp'].includes(ext)) {
+        candidatePaths.push(rawDoc.storageRef);
+      }
+      const stem = path.basename(rawDoc.storageRef, ext);
+      candidatePaths.push(
+        path.resolve(process.cwd(), '..', 'vision-service', 'uploads', 'coarse_aligned', `${stem}_coarse_aligned.png`),
+        path.resolve(process.cwd(), '..', 'uploads', 'coarse_aligned', `${stem}_coarse_aligned.png`),
+      );
+    }
+
+    // 3. Check common known locations on disk
+    const filenameA = `image_a_coarse_aligned.png`;
+    const filenameB = `image_b_coarse_aligned.png`;
+    const targetFilename = type === 'A' ? filenameA : filenameB;
+
+    candidatePaths.push(
+      path.resolve(process.cwd(), '..', 'vision-service', 'uploads', 'coarse_aligned', targetFilename),
+      path.resolve(process.cwd(), '..', 'uploads', 'coarse_aligned', targetFilename),
+      path.resolve(process.cwd(), 'uploads', 'coarse_aligned', targetFilename),
+      path.resolve(process.cwd(), '..', 'vision-service', targetFilename),
+    );
+
+    for (const p of candidatePaths) {
+      if (p && typeof p === 'string') {
+        const resolved = path.isAbsolute(p) ? p : path.resolve(process.cwd(), '..', 'vision-service', p);
+        if (fs.existsSync(resolved) && !resolved.toLowerCase().endsWith('.img') && !resolved.toLowerCase().endsWith('.xml')) {
+          return resolved;
+        }
+      }
+    }
+
+    // 4. On-demand generation: if raw files exist, call vision service to generate
+    const rawA = run.sourceImageId as any;
+    const rawB = run.referenceImageId as any;
+    if (rawA?.storageRef && rawB?.storageRef && fs.existsSync(rawA.storageRef) && fs.existsSync(rawB.storageRef)) {
+      try {
+        const payload = {
+          image_a: { image_id: `${runId}_a`, instrument: rawA.instrument || 'OHRC', image_path: rawA.storageRef, xml_label_path: null },
+          image_b: { image_id: `${runId}_b`, instrument: rawB.instrument || 'OHRC', image_path: rawB.storageRef, xml_label_path: null },
+        };
+        const resp = await fetch(`${this.visionServiceUrl}/api/v1/geometry/align-coarse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (resp.ok) {
+          const resJson = await resp.json();
+          run.geometryResult = resJson;
+          await run.save();
+          const targetPath = type === 'A' ? resJson.details?.image_a_common_ref : resJson.details?.image_b_common_ref;
+          if (targetPath && fs.existsSync(targetPath)) {
+            return targetPath;
+          }
+        }
+      } catch (err: any) {
+        this.logger.error(`On-demand alignment failed: ${err.message}`);
+      }
+    }
+
+    throw new NotFoundException(`Image ${type} for run ${runId} not found on server disk`);
   }
 }

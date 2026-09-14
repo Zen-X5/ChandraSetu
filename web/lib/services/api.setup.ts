@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getSessionCookie } from '../utils/session.utils';
+import { getGatewayBaseUrl } from '../utils/gateway.utils';
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000/api',
+    baseUrl: getGatewayBaseUrl(),
     prepareHeaders: (headers) => {
       const token = getSessionCookie();
       if (token) {

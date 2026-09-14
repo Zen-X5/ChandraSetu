@@ -13,6 +13,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { PipelineRunResponse } from '@/lib/services/pipelineApi';
+import { getGatewayBaseUrl } from '@/lib/utils/gateway.utils';
 import ObservationTour from './ObservationTour';
 
 interface CraterInspectionViewProps {
@@ -52,7 +53,7 @@ export default function CraterInspectionView({ run, onBackTo3D }: CraterInspecti
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imageFrameRef = useRef<HTMLDivElement | null>(null);
 
-  const rawBase = (process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000/api').replace(/\/+$/, '');
+  const rawBase = getGatewayBaseUrl().replace(/\/+$/, '');
   const apiBase = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
   const imgBUrl = `${apiBase}/pipeline/run/${run.runId}/image-b`;
   const imgAUrl = `${apiBase}/pipeline/run/${run.runId}/image-a`;

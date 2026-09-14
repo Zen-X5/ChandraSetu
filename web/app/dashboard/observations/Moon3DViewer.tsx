@@ -11,6 +11,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { PipelineRunResponse } from '@/lib/services/pipelineApi';
+import { getGatewayBaseUrl } from '@/lib/utils/gateway.utils';
 
 interface Moon3DViewerProps {
   observations: PipelineRunResponse[];
@@ -546,9 +547,7 @@ export default function Moon3DViewer({ observations, selectedRun, onSelectRun, o
       geo.computeVertexNormals();
 
       // Texture: real uploaded image from API, draped over the swath footprint
-      const rawBase = typeof window !== 'undefined'
-        ? (process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000/api').replace(/\/+$/, '')
-        : 'http://localhost:8000/api';
+      const rawBase = getGatewayBaseUrl().replace(/\/+$/, '');
       const apiBase = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
       const texLoader = new THREE.TextureLoader();
       const mat = new THREE.MeshStandardMaterial({

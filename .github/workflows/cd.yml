@@ -1,0 +1,96 @@
+name: Continuous Integration & Deployment (CI/CD)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # STAGE 1: Build & Test Code + Publish Docker Images to GHCR
+  build-and-publish:
+    name: 📦 Build & Publish Docker Containers (GHCR)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🐙 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🛠️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 1. Build & Push NestJS Gateway Image
+      - name: ⚙️ Build & Push API Gateway Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./gateway
+          file: ./gateway/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-gateway:latest
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-gateway:${{ github.sha }}
+
+      # 2. Build & Push OpenCV/PyTorch Vision Service Image
+      - name: 👁️ Build & Push Vision Engine Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./vision-service
+          file: ./vision-service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-vision-service:latest
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-vision-service:${{ github.sha }}
+
+      # 3. Build & Push AI Inference Matching Engine Image
+      - name: 🧠 Build & Push Inference Engine Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./inference-service
+          file: ./inference-service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-inference-service:latest
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-inference-service:${{ github.sha }}
+
+      # 4. Build & Push Next.js Web Dashboard Image
+      - name: 🌕 Build & Push Web Dashboard Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-web:latest
+            ghcr.io/${{ github.repository_owner }}/chandrasetu-web:${{ github.sha }}
+
+  # STAGE 2: Auto-Deploy to Remote Cloud Server (AWS EC2 / DigitalOcean VPS)
+  deploy:
+    name: 🚀 Auto-Deploy to Production Server
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    if: secrets.SERVER_HOST != ''
+
+    steps:
+      - name: 🚀 SSH Remote Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/ChandraSetu || git clone https://github.com/${{ github.repository }}.git ~/ChandraSetu && cd ~/ChandraSetu
+            git pull origin main
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f

@@ -23,8 +23,8 @@ export default function LoginPage() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const demoEmail = process.env.NEXT_PUBLIC_DEFAULT_ADMIN_EMAIL || 'scientist@isro.gov.in';
-  const demoPass = process.env.NEXT_PUBLIC_DEFAULT_ADMIN_PASSWORD || 'Admin@Chandrayaan2';
+  const demoEmail = process.env.NEXT_PUBLIC_DEFAULT_ADMIN_EMAIL || 'sahidwork123@gmail.com';
+  const demoPass = process.env.NEXT_PUBLIC_DEFAULT_ADMIN_PASSWORD || 'Sahid123sahim@';
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -135,11 +135,13 @@ export default function LoginPage() {
     mouseRef.current = { x: nx * 2, y: ny * 2 };
   };
 
-  const handleQuickFill = (demoEmail = 'scientist@isro.gov.in', demoPass = 'Admin@Chandrayaan2') => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
+  const handleQuickFill = (targetEmail?: string, targetPass?: string) => {
+    const fillEmail = targetEmail || demoEmail;
+    const fillPass = targetPass || demoPass;
+    setEmail(fillEmail);
+    setPassword(fillPass);
     setErrorMessage(null);
-    executeLogin(demoEmail, demoPass);
+    executeLogin(fillEmail, fillPass);
   };
 
   const executeLogin = async (targetEmail: string, targetPass: string) => {
@@ -158,23 +160,17 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 700);
-    } catch (err: unknown) {
-      // Fallback for Vercel live static demo if API gateway is offline
-      const mockUser = {
-        userId: 'evaluator-001',
-        name: 'ISRO Senior Evaluator',
-        email: targetEmail || 'scientist@isro.gov.in',
-        role: 'admin' as const,
-      };
-      dispatch(
-        setCredentials({
-          user: mockUser,
-          token: 'demo-jwt-evaluator-token-2026',
-        }),
-      );
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 700);
+    } catch (err: any) {
+      setIsWarpBoosting(false);
+      const rawMessage = err?.data?.message || err?.message;
+      const message = Array.isArray(rawMessage)
+        ? rawMessage.join(', ')
+        : typeof rawMessage === 'string'
+        ? rawMessage
+        : err?.status === 401
+        ? 'Invalid email or security password.'
+        : 'Authentication failed. Please check your credentials.';
+      setErrorMessage(message);
     }
   };
 

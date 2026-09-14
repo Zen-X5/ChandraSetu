@@ -1,0 +1,12 @@
+{
+  "name": "chandrasetu-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "docker compose up -d && node print-endpoints.js",
+    "docker:up": "docker compose up --build -d && node print-endpoints.js",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "status": "node print-endpoints.js"
+  }
+}

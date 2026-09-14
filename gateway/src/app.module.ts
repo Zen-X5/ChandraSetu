@@ -15,7 +15,7 @@ import { StorageModule } from './storage/storage.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGO_URL as string),
+    MongooseModule.forRoot(process.env.MONGO_URL || process.env.MONGODB_URI || 'mongodb://mongodb:27017/chandrasetu'),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'very_secret_superKey',

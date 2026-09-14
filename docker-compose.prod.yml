@@ -1,0 +1,97 @@
+name: chandrasetu-production
+
+services:
+  # 1. Object Storage (MinIO S3)
+  minio:
+    image: minio/minio:latest
+    container_name: chandrasetu-minio-prod
+    restart: always
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # MinIO Web Console
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data_prod:/data
+
+  # 2. MinIO S3 Auto-Bucket Initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: chandrasetu-minio-init-prod
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 2;
+      /usr/bin/mc alias set myminio http://minio:9000 ${S3_ACCESS_KEY:-minioadmin} ${S3_SECRET_KEY:-minioadmin};
+      /usr/bin/mc mb myminio/chandrasetu-images --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/chandrasetu-images;
+      exit 0;
+      "
+
+  # 3. OpenCV PyTorch Vision Core Engine
+  vision-service:
+    image: ghcr.io/${REPO_OWNER:-zen-x5}/chandrasetu-vision-service:latest
+    container_name: chandrasetu-vision-service-prod
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - STORAGE_TYPE=s3
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET_NAME=${S3_BUCKET:-chandrasetu-images}
+    depends_on:
+      - minio
+      - minio-init
+
+  # 4. AI Inference Feature Matching Engine
+  inference-service:
+    image: ghcr.io/${REPO_OWNER:-zen-x5}/chandrasetu-inference-service:latest
+    container_name: chandrasetu-inference-service-prod
+    restart: always
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+
+  # 5. NestJS API Gateway
+  gateway:
+    image: ghcr.io/${REPO_OWNER:-zen-x5}/chandrasetu-gateway:latest
+    container_name: chandrasetu-gateway-prod
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./gateway/.env
+    environment:
+      - PORT=8000
+      - VISION_SERVICE_URL=http://vision-service:8001
+      - INFERENCE_SERVICE_URL=http://inference-service:8002
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET_NAME=${S3_BUCKET:-chandrasetu-images}
+    depends_on:
+      - minio
+      - vision-service
+      - inference-service
+
+  # 6. Next.js Web Frontend Dashboard
+  web:
+    image: ghcr.io/${REPO_OWNER:-zen-x5}/chandrasetu-web:latest
+    container_name: chandrasetu-web-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:8000/api
+    depends_on:
+      - gateway
+
+volumes:
+  minio_data_prod:

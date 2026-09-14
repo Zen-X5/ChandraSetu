@@ -1,4 +1,7 @@
+name: chandrasetu
+
 services:
+  # 1. Database (MongoDB)
   mongodb:
     image: mongo:latest
     container_name: chandrasetu-mongodb
@@ -10,13 +13,14 @@ services:
     environment:
       - MONGO_INITDB_DATABASE=chandrasetu
 
+  # 2. Object Storage (MinIO S3)
   minio:
     image: minio/minio:latest
     container_name: chandrasetu-minio
     restart: always
     ports:
       - "9000:9000"  # S3 API
-      - "9001:9001"  # MinIO Web Console UI
+      - "9001:9001"  # MinIO Web Console
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -24,6 +28,7 @@ services:
     volumes:
       - minio_data:/data
 
+  # 3. MinIO S3 Auto-Bucket Initialization
   minio-init:
     image: minio/mc:latest
     container_name: chandrasetu-minio-init
@@ -37,6 +42,76 @@ services:
       /usr/bin/mc anonymous set download myminio/chandrasetu-images;
       exit 0;
       "
+
+  # 4. OpenCV PyTorch Vision Core Engine
+  vision-service:
+    build:
+      context: ./vision-service
+      dockerfile: Dockerfile
+    container_name: chandrasetu-vision-service
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - STORAGE_TYPE=s3
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=chandrasetu-images
+    depends_on:
+      - minio
+      - minio-init
+
+  # 5. AI Inference Feature Matching Engine
+  inference-service:
+    build:
+      context: ./inference-service
+      dockerfile: Dockerfile
+    container_name: chandrasetu-inference-service
+    restart: always
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+
+  # 6. NestJS API Gateway
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: chandrasetu-gateway
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./gateway/.env
+    environment:
+      - PORT=8000
+      - VISION_SERVICE_URL=http://vision-service:8001
+      - INFERENCE_SERVICE_URL=http://inference-service:8002
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=chandrasetu-images
+    depends_on:
+      - minio
+      - vision-service
+      - inference-service
+
+  # 7. Next.js Web Frontend Dashboard
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: chandrasetu-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:8000/api
+    depends_on:
+      - gateway
 
 volumes:
   mongo_data:

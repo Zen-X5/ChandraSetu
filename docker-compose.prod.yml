@@ -90,6 +90,9 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    environment:
+      # Next.js uses this server-side to proxy /api/* to the gateway
+      - GATEWAY_INTERNAL_URL=http://gateway:8000
     depends_on:
       - gateway
 

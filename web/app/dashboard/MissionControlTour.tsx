@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { HelpCircle, ChevronRight, ChevronLeft, X, AlertCircle, Compass, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, X, AlertCircle, Compass, CheckCircle2 } from 'lucide-react';
 
 export interface TourStep {
   targetSelector: string;

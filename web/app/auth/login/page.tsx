@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/lib/services/authApi';
 import { useAppDispatch } from '@/lib/hooks/hooks';
@@ -160,14 +159,15 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsWarpBoosting(false);
-      const rawMessage = err?.data?.message || err?.message;
+      const apiErr = err as { data?: { message?: string | string[] }; message?: string; status?: number };
+      const rawMessage = apiErr?.data?.message || apiErr?.message;
       const message = Array.isArray(rawMessage)
         ? rawMessage.join(', ')
         : typeof rawMessage === 'string'
         ? rawMessage
-        : err?.status === 401
+        : apiErr?.status === 401
         ? 'Invalid email or security password.'
         : 'Authentication failed. Please check your credentials.';
       setErrorMessage(message);

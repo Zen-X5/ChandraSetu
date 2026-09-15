@@ -6,7 +6,7 @@ import { useLoginMutation } from '@/lib/services/authApi';
 import { useAppDispatch } from '@/lib/hooks/hooks';
 import { setCredentials } from '@/lib/features/auth/authSlice';
 import SpaceTetris from './SpaceTetris';
-import { Lock, Eye, EyeOff, Radio, ShieldCheck, Orbit, ChevronRight, AlertCircle, Zap } from 'lucide-react';
+import { Lock, Eye, EyeOff, Radio, ShieldCheck, Orbit, ChevronRight, AlertCircle, Zap, Gamepad2, X } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isWarpBoosting, setIsWarpBoosting] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [showTetris, setShowTetris] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -69,7 +70,7 @@ export default function LoginPage() {
     let targetSpeed = 4.0;
 
     const render = () => {
-      ctx.fillStyle = 'rgba(10, 12, 16, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
       ctx.fillRect(0, 0, width, height);
 
       const cx = width / 2 + mouseRef.current.x * 35;
@@ -187,7 +188,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0A0C10] select-none text-[#E8EAED] font-sans">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-black select-none text-[#E8EAED] font-sans">
+      {/* Top Header */}
       <header className="relative z-30 h-13 border-b border-[#232833] bg-[#12151C] flex items-center justify-between px-4 shrink-0 shadow-lg">
         <div className="flex items-center gap-3 z-10 shrink-0 pr-4 bg-[#12151C] py-1">
           <div className="w-8 h-8 rounded bg-[#161A22] border border-[#232833] flex items-center justify-center text-[#5B8DEF] font-mono font-bold text-xs shrink-0">
@@ -205,7 +207,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative flex-1 overflow-hidden h-full flex items-center mx-4 mask-[linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+        {/* Marquee status bar */}
+        <div className="relative flex-1 overflow-hidden h-full hidden md:flex items-center mx-4 mask-[linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
           <div className="animate-marquee-ltr flex items-center gap-12 text-xs font-mono font-semibold tracking-wider text-[#8B92A0] whitespace-nowrap">
             <span className="flex items-center gap-2">
               <Radio className="w-3.5 h-3.5 text-[#3FB68B] animate-pulse" />
@@ -232,24 +235,38 @@ export default function LoginPage() {
             </span>
           </div>
         </div>
+
+        {/* Top-Right Try Tetris Button */}
+        <button
+          type="button"
+          onClick={() => setShowTetris(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#161A22] border border-[#3FB68B]/40 hover:border-[#3FB68B] text-[#3FB68B] hover:bg-[#3FB68B]/10 text-xs font-mono font-bold transition-all shadow-md active:scale-95 cursor-pointer shrink-0 ml-auto"
+        >
+          <Gamepad2 className="w-4 h-4 text-[#3FB68B]" />
+          <span>TRY TETRIS</span>
+        </button>
       </header>
 
-      <div className="flex flex-1 w-full h-[calc(100vh-3.25rem)] overflow-hidden relative bg-[#0A0C10]">
+      {/* Main Full-Screen Area */}
+      <div className="flex flex-1 w-full h-[calc(100vh-3.25rem)] overflow-hidden relative bg-black">
         <main
-          className="relative flex-1 h-full flex items-center justify-center overflow-hidden cursor-crosshair bg-[#0A0C10]"
+          className="relative flex-1 h-full flex items-center justify-center overflow-hidden cursor-crosshair bg-black p-4"
           onMouseMove={handleMouseMove}
         >
+          {/* Interactive Starfield Canvas */}
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-auto bg-[#0A0C10]"
+            className="absolute inset-0 w-full h-full pointer-events-auto bg-black"
           />
 
+          {/* Login Form Container */}
           <div
-            className={`relative z-20 w-full max-w-[480px] mx-4 transition-all duration-300 ease-out origin-bottom-left ${isMinimized
+            className={`relative z-20 w-full max-w-[480px] transition-all duration-300 ease-out origin-bottom-left ${isMinimized
               ? 'opacity-0 scale-20 -translate-x-[35vw] translate-y-[35vh] pointer-events-none'
               : 'opacity-100 scale-100 translate-x-0 translate-y-0 pointer-events-auto'
               }`}
           >
+            {/* SIH Demo Credentials Banner */}
             <div className="mb-3 lg:mb-0 lg:absolute lg:-left-80 lg:top-0 lg:w-76 z-30 animate-pulse-subtle">
               <div className="rounded-xl border border-[#5B8DEF]/60 bg-[#161A22]/95 backdrop-blur-md shadow-[0_10px_30px_rgba(91,141,239,0.25)] overflow-hidden font-mono">
                 <div className="bg-[#5B8DEF]/20 px-3.5 py-1.5 border-b border-[#5B8DEF]/40 flex items-center justify-between text-[#E8EAED]">
@@ -286,6 +303,7 @@ export default function LoginPage() {
               <div className="block lg:hidden w-3.5 h-3.5 bg-[#12151C] border-r border-b border-[#5B8DEF]/60 rotate-45 ml-8 -mt-1.5 shadow-lg relative z-20" />
             </div>
 
+            {/* Login Card */}
             <div className="rounded-xl overflow-hidden shadow-2xl border border-[#232833] bg-[#12151C]">
               <div className="px-4 py-3 flex items-center justify-between border-b border-[#232833] bg-[#0A0C10]">
                 <span className="font-mono font-bold text-xs text-[#E8EAED] tracking-wide">
@@ -380,6 +398,7 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Minimized Restore Toast */}
           <div
             className={`absolute bottom-6 left-6 z-30 transition-all duration-300 ease-out ${isMinimized
               ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
@@ -400,11 +419,35 @@ export default function LoginPage() {
             </button>
           </div>
         </main>
-
-        <aside className="w-80 xl:w-96 h-full border-l border-[#232833] bg-[#0A0C10] flex flex-col shrink-0 relative z-20 shadow-2xl">
-          <SpaceTetris />
-        </aside>
       </div>
+
+      {/* Tetris Modal Overlay */}
+      {showTetris && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md h-[90vh] max-h-[720px] bg-[#0A0C10] border border-[#232833] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-4 py-3 bg-[#12151C] border-b border-[#232833] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Gamepad2 className="w-4 h-4 text-[#3FB68B]" />
+                <span className="font-mono font-bold text-xs text-[#E8EAED]">Space Tetris Mini-Game</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTetris(false)}
+                className="w-7 h-7 rounded-lg bg-[#161A22] border border-[#232833] text-[#8B92A0] hover:text-[#E8EAED] hover:border-[#5B8DEF] flex items-center justify-center font-mono text-xs transition-colors cursor-pointer"
+                title="Close Tetris"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Tetris Body */}
+            <div className="flex-1 overflow-hidden relative">
+              <SpaceTetris />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

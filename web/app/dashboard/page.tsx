@@ -49,14 +49,14 @@ export default function DashboardHomePage() {
         </h1>
       </div>
 
-      {/* Metric Stats Banner (Panel #12151C, border #232833) */}
-      <div className="rounded-xl bg-[#12151C] border border-[#232833] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-[#232833] overflow-hidden shadow-sm">
+      {/* Metric Stats Banner */}
+      <div className="rounded-xl bg-[#12151C] border border-[#232833] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 overflow-hidden shadow-sm">
         {/* Metric 1 */}
-        <div className="p-5">
+        <div className="p-4 sm:p-5 border-r border-b lg:border-b-0 border-[#232833]">
           <div className="text-[10px] font-mono font-bold tracking-wider text-[#4E5462] uppercase">
             OBSERVATIONS
           </div>
-          <div className="text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
+          <div className="text-2xl sm:text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
             128
           </div>
           <div className="text-[11px] text-[#4E5462] mt-1 font-mono">
@@ -65,11 +65,11 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Metric 2 */}
-        <div className="p-5">
+        <div className="p-4 sm:p-5 border-b md:border-r lg:border-b-0 border-[#232833]">
           <div className="text-[10px] font-mono font-bold tracking-wider text-[#4E5462] uppercase">
             MATCHED
           </div>
-          <div className="text-3xl font-bold text-[#3FB68B] mt-1.5 font-sans tracking-tight">
+          <div className="text-2xl sm:text-3xl font-bold text-[#3FB68B] mt-1.5 font-sans tracking-tight">
             94
           </div>
           <div className="text-[11px] text-[#4E5462] mt-1 font-mono">
@@ -78,11 +78,11 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Metric 3 */}
-        <div className="p-5">
+        <div className="p-4 sm:p-5 border-r border-b md:border-b-0 border-[#232833]">
           <div className="text-[10px] font-mono font-bold tracking-wider text-[#4E5462] uppercase">
             UNCERTAIN
           </div>
-          <div className="text-3xl font-bold text-[#D9A441] mt-1.5 font-sans tracking-tight">
+          <div className="text-2xl sm:text-3xl font-bold text-[#D9A441] mt-1.5 font-sans tracking-tight">
             11
           </div>
           <div className="text-[11px] text-[#4E5462] mt-1 font-mono">
@@ -91,11 +91,11 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Metric 4 */}
-        <div className="p-5">
+        <div className="p-4 sm:p-5 border-b md:border-b-0 md:border-r border-[#232833]">
           <div className="text-[10px] font-mono font-bold tracking-wider text-[#4E5462] uppercase">
             QUEUE DEPTH
           </div>
-          <div className="text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
+          <div className="text-2xl sm:text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
             3
           </div>
           <div className="text-[11px] text-[#4E5462] mt-1 font-mono">
@@ -104,11 +104,11 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Metric 5 */}
-        <div className="p-5">
+        <div className="p-4 sm:p-5 col-span-2 md:col-span-1 border-t md:border-t-0 border-[#232833]">
           <div className="text-[10px] font-mono font-bold tracking-wider text-[#4E5462] uppercase">
             MEAN RMSE
           </div>
-          <div className="text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
+          <div className="text-2xl sm:text-3xl font-bold text-[#E8EAED] mt-1.5 font-sans tracking-tight">
             0.81 <span className="text-base font-normal text-[#8B92A0]">px</span>
           </div>
           <div className="text-[11px] text-[#4E5462] mt-1 font-mono">
@@ -120,7 +120,7 @@ export default function DashboardHomePage() {
       {/* Middle Grid: Pipeline Activity & 14 Days Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Pipeline Activity */}
-        <div className="lg:col-span-7 rounded-xl bg-[#12151C] border border-[#232833] p-5 flex flex-col justify-between">
+        <div className="lg:col-span-7 rounded-xl bg-[#12151C] border border-[#232833] p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between pb-3">
             <h2 className="text-sm font-semibold text-[#E8EAED]">
               Pipeline activity
@@ -130,9 +130,9 @@ export default function DashboardHomePage() {
             </span>
           </div>
 
-          <div className="mc-terminal rounded-lg p-4 h-64 overflow-y-auto space-y-2 text-[11px] leading-relaxed bg-[#0A0C10] border border-[#232833]">
+          <div className="mc-terminal rounded-lg p-3 sm:p-4 h-64 overflow-y-auto space-y-2 text-[11px] leading-relaxed bg-[#0A0C10] border border-[#232833]">
             {INITIAL_LOGS.map((log) => (
-              <div key={log.id} className="flex items-start gap-2.5 font-mono">
+              <div key={log.id} className="flex items-start gap-2 font-mono flex-wrap sm:flex-nowrap">
                 <span className="text-[#4E5462] shrink-0">{log.time}</span>
                 <span className="text-[#E8EAED] font-bold shrink-0">{log.runId}</span>
                 <span
@@ -154,8 +154,8 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Right: Observations, last 14 days */}
-        <div className="lg:col-span-5 rounded-xl bg-[#12151C] border border-[#232833] p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between pb-3">
+        <div className="lg:col-span-5 rounded-xl bg-[#12151C] border border-[#232833] p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 flex-wrap gap-2">
             <h2 className="text-sm font-semibold text-[#E8EAED]">
               Observations, last 14 days
             </h2>
@@ -172,10 +172,10 @@ export default function DashboardHomePage() {
           </div>
 
           {/* 14-Day Graph SVG */}
-          <div className="h-64 w-full flex flex-col justify-end pt-2">
+          <div className="h-64 w-full flex flex-col justify-end pt-2 overflow-hidden">
             <div className="relative w-full h-48">
-              <svg viewBox="0 0 520 180" className="w-full h-full overflow-visible">
-                {/* Grid Lines (Border #232833) */}
+              <svg viewBox="0 0 520 180" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                {/* Grid Lines */}
                 {[0, 36, 72, 108, 144, 180].map((y, i) => (
                   <g key={i}>
                     <line x1="28" y1={y} x2="520" y2={y} stroke="#232833" strokeWidth="1" />
@@ -185,7 +185,7 @@ export default function DashboardHomePage() {
                   </g>
                 ))}
 
-                {/* Matched Spline Line (Green #3FB68B) */}
+                {/* Matched Spline Line */}
                 <path
                   d="M 35 125 C 65 110, 80 135, 110 140 C 140 120, 160 100, 190 105 C 220 130, 245 90, 275 80 C 305 105, 325 70, 355 60 C 385 85, 410 65, 440 45 C 470 70, 490 35, 515 45"
                   fill="none"
@@ -194,7 +194,7 @@ export default function DashboardHomePage() {
                   strokeLinecap="round"
                 />
 
-                {/* Unmatched Spline Line (Red #D9534F) */}
+                {/* Unmatched Spline Line */}
                 <path
                   d="M 35 145 C 65 145, 80 142, 110 148 C 140 130, 160 140, 190 155 C 220 140, 245 155, 275 150 C 305 158, 325 152, 355 155 C 385 150, 410 145, 440 140 C 470 155, 490 150, 515 152"
                   fill="none"
@@ -206,19 +206,19 @@ export default function DashboardHomePage() {
             </div>
 
             {/* X-Axis Date Labels */}
-            <div className="flex justify-between text-[9px] font-mono text-[#4E5462] pt-2 border-t border-[#232833] px-2">
+            <div className="flex justify-between text-[9px] font-mono text-[#4E5462] pt-2 border-t border-[#232833] px-1">
               <span>D-13</span>
-              <span>D-12</span>
-              <span>D-11</span>
+              <span className="hidden sm:inline">D-12</span>
+              <span className="hidden sm:inline">D-11</span>
               <span>D-10</span>
-              <span>D-9</span>
-              <span>D-8</span>
+              <span className="hidden sm:inline">D-9</span>
+              <span className="hidden sm:inline">D-8</span>
               <span>D-7</span>
-              <span>D-6</span>
-              <span>D-5</span>
+              <span className="hidden sm:inline">D-6</span>
+              <span className="hidden sm:inline">D-5</span>
               <span>D-4</span>
-              <span>D-3</span>
-              <span>D-2</span>
+              <span className="hidden sm:inline">D-3</span>
+              <span className="hidden sm:inline">D-2</span>
               <span>D-1</span>
               <span>Today</span>
             </div>
@@ -227,7 +227,7 @@ export default function DashboardHomePage() {
       </div>
 
       {/* Bottom Card: Recent Observations Table */}
-      <div className="rounded-xl bg-[#12151C] border border-[#232833] p-5 shadow-sm">
+      <div className="rounded-xl bg-[#12151C] border border-[#232833] p-4 sm:p-5 shadow-sm">
         <div className="flex items-center justify-between pb-4">
           <h2 className="text-sm font-semibold text-[#E8EAED]">
             Recent observations
@@ -238,7 +238,7 @@ export default function DashboardHomePage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[560px]">
             <thead>
               <tr className="border-b border-[#232833] text-[10px] font-mono text-[#4E5462] uppercase tracking-wider">
                 <th className="pb-3 font-semibold">OBSERVATION</th>

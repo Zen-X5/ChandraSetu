@@ -20,6 +20,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Orbit,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -37,6 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const user = useAppSelector((state) => state.auth.user);
   const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const { data: meData, error: meError, isLoading: isMeLoading } = useGetMeQuery(undefined, {
     refetchOnMountOrArgChange: true,
@@ -107,9 +110,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0A0C10] text-[#E8EAED] font-sans select-none">
-      {/* Sidebar (Panel #12151C, border #232833) */}
+      {/* Desktop Sidebar (Hidden on Mobile < md) */}
       <aside
-        className={`h-full bg-[#12151C] border-r border-[#232833] flex flex-col justify-between shrink-0 z-30 transition-all duration-200 ease-in-out ${
+        className={`hidden md:flex h-full bg-[#12151C] border-r border-[#232833] flex-col justify-between shrink-0 z-30 transition-all duration-200 ease-in-out ${
           collapsed ? 'w-16' : 'w-56'
         }`}
       >
@@ -166,11 +169,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   )}
 
                   <div className="flex items-center gap-2.5 truncate">
-                    {collapsed ? (
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#5B8DEF]' : 'text-[#8B92A0] group-hover:text-[#E8EAED]'}`} />
-                    ) : (
-                      <span className="tracking-wide truncate">{item.name}</span>
-                    )}
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#5B8DEF]' : 'text-[#8B92A0] group-hover:text-[#E8EAED]'}`} />
+                    {!collapsed && <span className="tracking-wide truncate">{item.name}</span>}
                   </div>
 
                   {!collapsed && item.badge !== undefined && (
@@ -211,25 +211,128 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Main Content Area (Background canvas #0A0C10) */}
+      {/* Mobile Navigation Drawer (< md) */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Dark Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileOpen(false)}
+          />
+
+          {/* Slide-out Panel */}
+          <div className="relative w-64 max-w-[80vw] bg-[#12151C] border-r border-[#232833] flex flex-col justify-between h-full z-10 shadow-2xl animate-in slide-in-from-left duration-200">
+            <div>
+              <div className="h-16 flex items-center justify-between px-4 border-b border-[#232833]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded bg-[#161A22] border border-[#232833] flex items-center justify-center text-[#5B8DEF] font-mono font-bold text-xs shrink-0">
+                    CS
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-xs tracking-wider text-[#E8EAED] font-sans">
+                      CHANDRASETU
+                    </span>
+                    <span className="text-[9px] text-[#4E5462] font-mono tracking-wider uppercase">
+                      MISSION CONTROL
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-7 h-7 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] hover:text-[#E8EAED] flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <nav className="py-4 space-y-1 px-3">
+                {NAV_ITEMS.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center justify-between px-3 py-2.5 text-xs font-medium rounded-md transition-colors ${
+                        isActive
+                          ? 'text-[#E8EAED] bg-[#161A22] font-semibold border-l-2 border-[#5B8DEF]'
+                          : 'text-[#8B92A0] hover:text-[#E8EAED] hover:bg-[#161A22]/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#5B8DEF]' : 'text-[#8B92A0]'}`} />
+                        <span>{item.name}</span>
+                      </div>
+                      {item.badge !== undefined && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] font-mono">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="p-4 border-t border-[#232833] bg-[#12151C]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-[#161A22] border border-[#232833] flex items-center justify-center font-bold text-xs text-[#E8EAED] shrink-0">
+                    {initials[0] || 'U'}
+                  </div>
+                  <div className="flex flex-col truncate">
+                    <span className="text-xs font-medium text-[#E8EAED] truncate">{userDisplayName}</span>
+                    <span className="text-[9px] font-mono text-[#4E5462] uppercase truncate">{userRole}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="p-1.5 rounded text-[#8B92A0] hover:text-[#D9534F] hover:bg-[#161A22] transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0C10]">
-        {/* Top Header (Panel #12151C, border #232833) */}
-        <header className="h-12 border-b border-[#232833] bg-[#12151C] flex items-center justify-between px-6 shrink-0 z-20">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-[#3FB68B] inline-block shadow-[0_0_6px_rgba(63,182,139,0.7)]" />
-              <span className="text-[11px] font-mono text-[#8B92A0] font-semibold tracking-wider uppercase">
-                CHANDRAYAAN-2 NETWORK — NOMINAL
+        {/* Top Header */}
+        <header className="h-13 border-b border-[#232833] bg-[#12151C] flex items-center justify-between px-3 sm:px-6 shrink-0 z-20 gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Hamburger button for mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden w-8 h-8 rounded bg-[#161A22] border border-[#232833] text-[#8B92A0] hover:text-[#E8EAED] flex items-center justify-center shrink-0 cursor-pointer"
+              title="Open Navigation"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="h-2 w-2 rounded-full bg-[#3FB68B] inline-block shrink-0 shadow-[0_0_6px_rgba(63,182,139,0.7)]" />
+              <span className="text-[10px] sm:text-[11px] font-mono text-[#8B92A0] font-semibold tracking-wider uppercase truncate">
+                CHANDRAYAAN-2 NETWORK
               </span>
             </div>
 
-            <MissionControlTour />
+            <div className="shrink-0">
+              <MissionControlTour />
+            </div>
           </div>
 
-          <div data-tour="header-payloads" className="flex items-center gap-6 text-[11px] font-mono tracking-wider">
+          <div data-tour="header-payloads" className="hidden lg:flex items-center gap-6 text-[11px] font-mono tracking-wider shrink-0">
             <div className="flex items-center gap-1.5">
               <span className="text-[#8B92A0]">OHRC</span>
-              <span className="text-[#5B8DEF] font-bold">ACTIVE</span>
+              <span className="text-[#3FB68B] font-bold">ACTIVE</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[#8B92A0]">TMC-2</span>
@@ -243,7 +346,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#0A0C10]">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0A0C10]">
           {children}
         </main>
       </div>
